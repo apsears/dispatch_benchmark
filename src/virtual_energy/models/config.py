@@ -33,6 +33,13 @@ class BatteryConfig(BaseModel):
         default=200, gt=0, description="Maximum energy discharge per 24h"
     )
 
+    initial_soc_frac: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="Initial state of charge fraction (0-1)",
+    )
+
     @validator("eta_chg")
     def efficiency_must_be_reasonable(cls, v):
         if v > 1.0:

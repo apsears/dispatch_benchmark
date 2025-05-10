@@ -325,7 +325,7 @@ def run_benchmark(
         "eta_chg": battery_config.eta_chg,
         "p_max_mw": battery_config.p_max_mw,
         "e_max_mwh": battery_config.e_max_mwh,
-        "initial_soc_pct": battery_config.initial_soc_pct,
+        "initial_soc_frac": battery_config.initial_soc_frac,
     }
 
     # Load all price data based on format

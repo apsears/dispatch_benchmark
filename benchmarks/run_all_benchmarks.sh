@@ -38,7 +38,7 @@ export PYTHONPATH=$REPO_ROOT/src:$PYTHONPATH
 
 # Check for required data files
 ERCOT_DATA="$REPO_ROOT/data/ercot/2024_RealTime_SPP.csv"
-NYISO_DATA="$REPO_ROOT/data/nyiso/2024_DayAhead_LBMP.csv"
+NYISO_DATA="$REPO_ROOT/data/nyiso/2024_RealTime_LBMP.csv"
 
 if [[ ! -f "$ERCOT_DATA" ]]; then
     echo "Error: ERCOT data file not found at $ERCOT_DATA"

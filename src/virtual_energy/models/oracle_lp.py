@@ -172,12 +172,12 @@ def main():
     delta_t = battery_config.delta_t  # Always use config value for delta_t
 
     # Initial SoC (default to 50% if not in args or invalid)
-    initial_soc_pct = (
+    initial_soc_frac = (
         args.initial_soc
         if args.initial_soc is not None
-        else battery_config.initial_soc_pct
+        else battery_config.initial_soc_frac
     )
-    initial_soc = initial_soc_pct * capacity
+    initial_soc = initial_soc_frac * capacity
 
     # ------------------------------------------------------------------
     # Data prep
