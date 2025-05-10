@@ -1,0 +1,100 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "virtual-energy"
+version = "0.1.0"
+description = "Tools for energy market data processing and battery dispatch optimization"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+dependencies = [
+    "numpy>=1.23.0",
+    "pandas>=1.5.0",
+    "scipy>=1.9.0",
+    "scikit-learn>=1.0.0",
+    "river>=0.15.0",
+    "pulp>=2.0.0",
+    "prophet>=1.0.0",
+    "requests>=2.25.0",
+    "tqdm>=4.65.0",
+    "matplotlib>=3.5.0",
+    "plotly>=5.10.0",
+    "python-dotenv>=0.20.0",
+    "pydantic>=2.11.4",
+    "pytest>=8.3.5",
+    "pyyaml>=6.0.2",
+    "tomli>=2.0.0; python_version < '3.11'", # Only needed for Python < 3.11
+    "seaborn>=0.13.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "isort>=5.10.0",
+    "flake8>=5.0.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["virtual_energy", "virtual_energy.*"]
+
+[project.scripts]
+process-ercot = "virtual_energy.cli.ercot_cli:main"
+process-nyiso = "virtual_energy.cli.nyiso_cli:main"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.isort]
+profile = "black"
+
+# Configuration for the virtual-energy package
+[tool.virtual-energy]
+default_iso = "ercot"
+
+[tool.virtual-energy.battery]
+e_max_mwh = 200
+p_max_mw = 25
+eta_chg = 0.95
+delta_t = 0.25  # 15-minute intervals
+initial_soc_pct = 0.5
+
+[tool.virtual-energy.optimisers]
+# List of optimisers to use in benchmarks
+enabled = ["oracle_lp", "online_mpc", "online_quartile", "online_naive"]
+
+[tool.virtual-energy.forecasters]
+# Naive forecaster settings (baseline)
+[tool.virtual-energy.forecasters.naive]
+# No specific parameters needed for naive forecaster
+
+# Ridge regression forecaster settings
+[tool.virtual-energy.forecasters.ridge]
+lags = 4
+alphas = [0.01, 0.1, 1.0, 10.0, 100.0]
+cv = 5  # Number of cross-validation folds for alpha selection
+
+# EWMA forecaster settings
+[tool.virtual-energy.forecasters.ewma]
+spans = [12, 24, 48, 96]  # Different window sizes to try
+
+# Quartile forecaster settings
+[tool.virtual-energy.forecasters.quartile]
+percentiles = [10, 25, 45]
+window_sizes = [672]  # 7 days of 15-minute intervals
+
+[tool.virtual-energy.benchmark]
+# Benchmark configuration
+output_dir = "benchmark_results"
+max_nodes = 100  # Maximum number of nodes to benchmark
+n_jobs = -1  # Use all available cores for parallel processing 

@@ -1,0 +1,6 @@
+# sample_nodes.yaml - Example configuration for benchmark nodes
+nodes:
+  - HB_HOUSTON
+  - HB_NORTH
+  - HB_SOUTH
+  - HB_WEST 
