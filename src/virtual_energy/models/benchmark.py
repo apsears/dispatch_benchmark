@@ -25,29 +25,42 @@ from functools import partial
 
 # Import models
 from virtual_energy.models.model_config import BatteryConfig
-from virtual_energy.optimisers.oracle_lp import create_and_solve_model as oracle_lp_solve
-from virtual_energy.optimisers.online_mpc import run_mpc as online_mpc_run, FORECASTERS as online_mpc_forecasters
+from virtual_energy.optimisers.oracle_lp import (
+    create_and_solve_model as oracle_lp_solve,
+)
+from virtual_energy.optimisers.online_mpc import (
+    run_mpc as online_mpc_run,
+    FORECASTERS as online_mpc_forecasters,
+)
 from virtual_energy.models.online_quartile import quartile_dispatch
 from virtual_energy.utils.ercot_utils import tidy
 
 # Import the new configuration system
-from virtual_energy.config import get_battery_config, get_optimisers, get_forecaster_config, get_benchmark_config
+from virtual_energy.config import (
+    get_battery_config,
+    get_optimisers,
+    get_forecaster_config,
+    get_benchmark_config,
+)
+
 
 # Custom JSON encoder to handle timestamps and other special objects
 class CustomJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder that can handle pandas Timestamps and other special objects."""
+
     def default(self, obj):
         # Convert pandas Timestamp to ISO format string
-        if hasattr(obj, 'isoformat'):
+        if hasattr(obj, "isoformat"):
             return obj.isoformat()
         # Convert numpy types
-        elif hasattr(obj, 'item'):
+        elif hasattr(obj, "item"):
             return obj.item()
         # Convert numpy arrays
-        elif hasattr(obj, 'tolist'):
+        elif hasattr(obj, "tolist"):
             return obj.tolist()
         # Let the base class handle other types or raise TypeError
         return super().default(obj)
+
 
 # Get battery config for multiprocessing from our new config system
 DEFAULT_CFG = get_battery_config()
@@ -146,10 +159,10 @@ def filter_date_range(df, start_date=None, end_date=None):
 
     # Filter to the date range
     filtered_df = df[(df["timestamp"] >= start_date) & (df["timestamp"] < end_date)]
-    
+
     if len(filtered_df) == 0:
         print(f"Warning: No data found between {start_date} and {end_date}")
-        
+
     return filtered_df
 
 
@@ -165,7 +178,9 @@ def run_oracle_lp(prices_df, cfg):
 
     # For JSON serialization, convert to basic types
     dispatch_dict = {
-        col: list(dispatch[col]) if isinstance(dispatch[col], pd.Series) else dispatch[col]
+        col: list(dispatch[col])
+        if isinstance(dispatch[col], pd.Series)
+        else dispatch[col]
         for col in dispatch.columns
     }
 
@@ -178,7 +193,7 @@ def run_oracle_lp(prices_df, cfg):
             "mean_price": float(dispatch["SettlementPointPrice"].mean()),
             "mean_revenue": float(dispatch["Revenue$"].mean()),
             "total_mwh_deployed": float(dispatch["MWhDeployed"].sum()),
-        }
+        },
     }
 
 
@@ -186,11 +201,11 @@ def run_online_mpc(prices_df, cfg, forecast_model="ridge", horizon=32):
     """Run the online MPC model with the specified forecast model."""
     # Get forecaster config from our configuration system
     forecaster_config = get_forecaster_config(forecast_model)
-    
+
     # Use horizon from config if available
     if "horizon" in forecaster_config:
         horizon = forecaster_config.get("horizon", horizon)
-        
+
     print(f"Running Online MPC with {forecast_model} model...")
     start_time = time.time()
 
@@ -215,7 +230,7 @@ def run_online_mpc(prices_df, cfg, forecast_model="ridge", horizon=32):
             "mean_price": float(dispatch["SettlementPointPrice"].mean()),
             "mean_revenue": float(dispatch["Revenue$"].mean()),
             "total_mwh_deployed": float(dispatch["MWhDeployed"].sum()),
-        }
+        },
     }
 
 
@@ -223,23 +238,23 @@ def run_online_quartile(prices_df, pct=10, window=672):
     """Run the online quartile model."""
     # Get quartile config from our configuration system
     quartile_config = get_forecaster_config("quartile")
-    
+
     # Use percentiles and window_sizes from config if available
     percentiles = quartile_config.get("percentiles", [pct])
     window_sizes = quartile_config.get("window_sizes", [window])
-    
+
     # If the provided pct is not in the config, use it anyway
     if pct not in percentiles:
         percentiles.append(pct)
-        
+
     # If the provided window is not in the config, use it anyway
     if window not in window_sizes:
         window_sizes.append(window)
-        
+
     # Use the provided pct and window or the first ones from config
     pct = pct if pct else percentiles[0]
     window = window if window else window_sizes[0]
-    
+
     print(f"Running Online Quartile model (pct={pct}, window={window})...")
     start_time = time.time()
 
@@ -262,7 +277,7 @@ def run_online_quartile(prices_df, pct=10, window=672):
             "mean_price": float(dispatch["SettlementPointPrice"].mean()),
             "mean_revenue": float(dispatch["Revenue$"].mean()),
             "total_mwh_deployed": float(dispatch["MWhDeployed"].sum()),
-        }
+        },
     }
 
 
@@ -295,7 +310,9 @@ def process_node(node, df_all, start_date, end_date, output_dir):
         return None
 
     print(f"\nBenchmarking models for node: {node}")
-    print(f"Using data from {node_df['timestamp'].min()} to {node_df['timestamp'].max()}")
+    print(
+        f"Using data from {node_df['timestamp'].min()} to {node_df['timestamp'].max()}"
+    )
 
     # Initialize results
     results = []
@@ -308,7 +325,9 @@ def process_node(node, df_all, start_date, end_date, output_dir):
     if "oracle_lp" in enabled_optimisers:
         try:
             result = run_oracle_lp(node_df, DEFAULT_CFG)
-            print(f"Oracle LP: ${result['revenue']:.2f} in {result['runtime_seconds']:.2f}s")
+            print(
+                f"Oracle LP: ${result['revenue']:.2f} in {result['runtime_seconds']:.2f}s"
+            )
 
             results.append(result)
             save_results(results, output_file)
@@ -319,10 +338,17 @@ def process_node(node, df_all, start_date, end_date, output_dir):
     if "online_mpc" in enabled_optimisers:
         # Get ridge config from our configuration system
         ridge_config = get_forecaster_config("ridge")
-        
+
         try:
-            result = run_online_mpc(node_df, DEFAULT_CFG, forecast_model="ridge", horizon=ridge_config.get("horizon", 32))
-            print(f"Online MPC (ridge): ${result['revenue']:.2f} in {result['runtime_seconds']:.2f}s")
+            result = run_online_mpc(
+                node_df,
+                DEFAULT_CFG,
+                forecast_model="ridge",
+                horizon=ridge_config.get("horizon", 32),
+            )
+            print(
+                f"Online MPC (ridge): ${result['revenue']:.2f} in {result['runtime_seconds']:.2f}s"
+            )
 
             results.append(result)
             save_results(results, output_file)
@@ -335,11 +361,13 @@ def process_node(node, df_all, start_date, end_date, output_dir):
         quartile_config = get_forecaster_config("quartile")
         percentiles = quartile_config.get("percentiles", [10, 25, 45])
         window_size = quartile_config.get("window_sizes", [672])[0]
-        
+
         for pct in percentiles:
             try:
                 result = run_online_quartile(node_df, pct=pct, window=window_size)
-                print(f"Online Quartile (p{pct}): ${result['revenue']:.2f} in {result['runtime_seconds']:.2f}s")
+                print(
+                    f"Online Quartile (p{pct}): ${result['revenue']:.2f} in {result['runtime_seconds']:.2f}s"
+                )
 
                 results.append(result)
                 save_results(results, output_file)
@@ -357,10 +385,12 @@ def run_benchmark(
     output_dir=None,
     n_jobs=None,
     max_nodes=None,
+    data_format=None,
+    data_frequency=None,
 ):
     """
     Run benchmark on selected nodes.
-    
+
     Args:
         prices_path: Path to CSV with price data
         start_date: Start date for analysis (YYYY-MM-DD)
@@ -369,17 +399,76 @@ def run_benchmark(
         output_dir: Directory to save results
         n_jobs: Number of processes to use
         max_nodes: Maximum number of nodes to load from prices file
+        data_format: Format of the data ('tidy' or 'wide')
+        data_frequency: Target frequency for resampling data (e.g., '15T' for 15 minutes)
     """
     # Get benchmark config from our configuration system
     benchmark_config = get_benchmark_config()
-    
+
     # Use config values if not provided
     output_dir = output_dir or benchmark_config.get("output_dir", "benchmark_results")
     n_jobs = n_jobs or benchmark_config.get("n_jobs", -1)
     max_nodes = max_nodes or benchmark_config.get("max_nodes", 100)
-    
+
     # Load price data
     df_all = load_prices(prices_path, max_nodes=max_nodes)
+
+    # If data_frequency is specified, resample the data
+    if data_frequency:
+        try:
+            from virtual_energy.io.nyiso import (
+                load_prices as nyiso_load_prices,
+                infer_frequency,
+            )
+
+            # Check if we can infer the frequency
+            original_freq = infer_frequency(df_all)
+            print(f"Original data frequency: {original_freq}")
+
+            if original_freq != data_frequency:
+                print(f"Resampling data from {original_freq} to {data_frequency}")
+
+                # Convert timestamp to datetime if it's not already
+                df_all["timestamp"] = pd.to_datetime(df_all["timestamp"])
+
+                # Resample each column except timestamp
+                node_columns = [col for col in df_all.columns if col != "timestamp"]
+                resampled_dfs = []
+
+                for node in node_columns:
+                    # Create a tidy dataframe for this node
+                    node_df = df_all[["timestamp", node]].copy()
+                    node_df.columns = ["timestamp", "price"]
+
+                    # Add a node column
+                    node_df["node"] = node
+
+                    # Resample
+                    node_df = (
+                        node_df.set_index("timestamp")
+                        .groupby("node")
+                        .resample(data_frequency)
+                        .mean()
+                        .reset_index()
+                    )
+
+                    resampled_dfs.append(node_df)
+
+                # Combine all resampled dataframes
+                if resampled_dfs:
+                    combined_df = pd.concat(resampled_dfs, ignore_index=True)
+
+                    # Convert back to wide format
+                    wide_df = combined_df.pivot(
+                        index="timestamp", columns="node", values="price"
+                    ).reset_index()
+
+                    # Replace the original dataframe
+                    df_all = wide_df
+                    print(f"Successfully resampled data to {data_frequency}")
+        except Exception as e:
+            print(f"Warning: Failed to resample data: {e}")
+            print("Proceeding with original data frequency")
 
     # If no nodes specified, use all columns except timestamp
     if not nodes:
@@ -401,16 +490,20 @@ def run_benchmark(
         # Single process mode
         all_results = {}
         for node in tqdm(nodes, desc="Processing nodes"):
-            all_results[node] = process_node(node, df_all, start_date, end_date, output_dir)
+            all_results[node] = process_node(
+                node, df_all, start_date, end_date, output_dir
+            )
     else:
         # Multiprocessing mode
         process_partial = partial(
-            process_node, df_all=df_all, start_date=start_date, end_date=end_date, output_dir=output_dir
+            process_node,
+            df_all=df_all,
+            start_date=start_date,
+            end_date=end_date,
+            output_dir=output_dir,
         )
         with mp.Pool(processes=n_jobs) as pool:
-            all_results = dict(
-                zip(nodes, pool.map(process_partial, nodes))
-            )
+            all_results = dict(zip(nodes, pool.map(process_partial, nodes)))
 
     # Save combined results
     combined_file = os.path.join(output_dir, "combined_results.json")
@@ -421,7 +514,7 @@ def main():
     """Parse command-line arguments and run the benchmark."""
     # Get benchmark config from our configuration system
     benchmark_config = get_benchmark_config()
-    
+
     parser = argparse.ArgumentParser(
         description="Benchmark battery dispatch strategies on historical ERCOT price data"
     )
@@ -463,6 +556,15 @@ def main():
         default=benchmark_config.get("max_nodes", 100),
         help="Maximum number of settlement points to use",
     )
+    parser.add_argument(
+        "--data-format",
+        choices=["tidy", "wide"],
+        help="Format of the data ('tidy' or 'wide')",
+    )
+    parser.add_argument(
+        "--data-frequency",
+        help="Target frequency for resampling data (e.g., '15T' for 15 minutes)",
+    )
     args = parser.parse_args()
 
     # Process nodes from CLI or file
@@ -482,6 +584,8 @@ def main():
         output_dir=args.output_dir,
         n_jobs=args.n_jobs,
         max_nodes=args.max_nodes,
+        data_format=args.data_format,
+        data_frequency=args.data_frequency,
     )
 
 

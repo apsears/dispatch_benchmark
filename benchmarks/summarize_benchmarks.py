@@ -598,12 +598,15 @@ def run_benchmark_for_iso(iso_name, data_file, output_dir, max_nodes=10, n_jobs=
     if iso_name.upper() == "ERCOT":
         data_format = "tidy"  # node, timestamp, price format
         print(f"Using ERCOT format (tidy) for {data_file}")
+        data_frequency = ""  # No explicit resampling needed, already at 15min
     elif iso_name.upper() == "NYISO":
         data_format = "tidy"  # zone, timestamp, price format
         print(f"Using NYISO format (tidy) for {data_file}")
+        data_frequency = "--data-frequency 15T"  # Resample to 15-minute intervals
     else:
         print(f"Unknown ISO: {iso_name}, assuming tidy format")
         data_format = "tidy"
+        data_frequency = ""
 
     # Run the benchmark using the comprehensive_benchmark script
     cmd = f"""
@@ -611,6 +614,7 @@ def run_benchmark_for_iso(iso_name, data_file, output_dir, max_nodes=10, n_jobs=
     python3 comprehensive_benchmark.py \\
         --prices-path {data_file} \\
         --data-format {data_format} \\
+        {data_frequency} \\
         --output-dir {iso_output_dir} \\
         --max-nodes {max_nodes} \\
         --n-jobs {n_jobs}

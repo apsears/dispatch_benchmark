@@ -10,12 +10,9 @@ import os
 from pathlib import Path
 
 # Try to load dotenv for environment variables
-try:
-    from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-    load_dotenv()
-except ImportError:
-    print("dotenv module not found. Install with 'uv pip install python-dotenv'")
+load_dotenv()
 
 # Import nyiso module functionality
 from src.virtual_energy.io.nyiso import (
@@ -46,7 +43,7 @@ def parse_args():
         "--market",
         choices=["da", "rt"],
         default="rt",
-        help="Market data: day-ahead (da) or realtime (rt) (default: da)",
+        help="Market data: day-ahead (da) or realtime (rt) (default: rt)",
     )
     parser.add_argument(
         "--format",

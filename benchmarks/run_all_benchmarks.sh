@@ -70,6 +70,7 @@ echo "Starting NYISO benchmark..."
 python3 comprehensive_benchmark.py \
     --prices-path "$NYISO_DATA" \
     --data-format tidy \
+    --data-frequency "15T" \
     --output-dir "$NYISO_OUTPUT" \
     --max-nodes "$MAX_NODES" \
     --n-jobs "$N_JOBS"

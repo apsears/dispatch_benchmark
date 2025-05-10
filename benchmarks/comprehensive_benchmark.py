@@ -13,6 +13,9 @@ import pandas as pd
 from pathlib import Path
 import traceback
 
+# Import the benchmark function from the models module
+from virtual_energy.models.benchmark import run_benchmark
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -36,6 +39,12 @@ def main():
         choices=["tidy", "wide"],
         default="tidy",
         help="Format of the input data: tidy (default) or wide",
+    )
+    parser.add_argument(
+        "--data-frequency",
+        type=str,
+        default=None,
+        help="Target frequency for resampling data (e.g., '15T' for 15 minutes). Uses original frequency if not specified.",
     )
     parser.add_argument(
         "--nodes",
@@ -69,6 +78,10 @@ def main():
     print(f"Max nodes: {args.max_nodes}")
     print(f"Parallel jobs: {args.n_jobs}")
 
+    # Add data frequency to print output if specified
+    if args.data_frequency:
+        print(f"Data frequency: {args.data_frequency} (resampling enabled)")
+
     # Add a note about the naive forecaster
     print("\nThis benchmark includes the naive forecaster as a baseline.")
     print("The naive forecaster predicts future prices = last observed price.")
@@ -82,13 +95,14 @@ def main():
 
     # Run the benchmark (this uses the naive forecaster added to process_node)
     results_summary = run_benchmark(
-        args.prices_path,
+        prices_path=args.prices_path,
         start_date=None,  # Use automatic date from the data
         output_dir=args.output_dir,
         nodes=args.nodes,
         max_nodes=args.max_nodes,
         n_jobs=args.n_jobs,
         data_format=args.data_format,  # Pass the data format to the benchmark function
+        data_frequency=args.data_frequency,  # Pass the data frequency for resampling
     )
 
     # Print some analysis specifically highlighting the naive model performance
