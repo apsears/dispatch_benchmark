@@ -22,8 +22,8 @@ NYISO_SUMMARY="results/summary/nyiso"
 PLOTS_DIR="results/plots"
 
 # Settings
-MAX_NODES=100
-N_JOBS=6    
+MAX_NODES=200
+N_JOBS=32   
 
 mkdir -p "$ERCOT_OUTPUT" "$NYISO_OUTPUT" "$SUMMARY_OUTPUT" "$ERCOT_SUMMARY" "$NYISO_SUMMARY" "$PLOTS_DIR"
 
