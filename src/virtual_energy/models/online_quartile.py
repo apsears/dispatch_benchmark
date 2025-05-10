@@ -20,17 +20,22 @@ python online_quartile.py --prices ercot.csv --pct 10 --window 672
 """
 
 from pathlib import Path
-import argparse, warnings
+import argparse, warnings, time
 import numpy as np, pandas as pd
+from tqdm import tqdm
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-# Battery constants
-P_MAX = 25  # MW   (per 15-min)
-E_MAX = 200  # MWh
-ETA_CHG = 0.95
-DELTA_T = 0.25  # h
-CYCLE_CAP = 200  # MWh discharged per day
+# ──────────────────────────────────────────────────────────────────────────────
+# Get battery parameters from config
+from virtual_energy.config import get_battery_config
+
+battery_config = get_battery_config()
+P_MAX = battery_config.p_max_mw
+E_MAX = battery_config.e_max_mwh
+ETA_CHG = battery_config.eta_chg
+DELTA_T = battery_config.delta_t
+CYCLE_CAP = E_MAX  # MWh discharged per day
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -60,10 +60,10 @@ Results are saved after each model run to prevent data loss if the script is int
 
 ## Battery Configuration
 
-The benchmark uses a standard battery configuration:
+The benchmark uses the battery configuration defined in `pyproject.toml` under the `[tool.virtual-energy.battery]` section. The default configuration uses:
 - 25 MW power capacity
 - 200 MWh energy capacity
 - 95% charging efficiency
 - 15-minute intervals (0.25 hours)
 
-These settings can be modified in the script if needed. 
+These settings can be modified in `pyproject.toml` to run benchmarks with different battery configurations. 

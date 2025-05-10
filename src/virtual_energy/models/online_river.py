@@ -11,20 +11,26 @@ python online_river.py --prices ercot.csv --algo thompson --seed 42  # reproduci
 """
 
 from pathlib import Path
-import argparse, warnings
+import argparse, warnings, time, random
 import numpy as np, pandas as pd
 from river import bandit, preprocessing
 from river import proba  # Import for ThompsonSampling distribution
-import random
+from tqdm import tqdm
 
-warnings.filterwarnings("ignore", category=FutureWarning)
+# Get battery parameters from config
+from virtual_energy.config import get_battery_config
 
-# ─────────── battery constants ───────────
-P_MAX, E_MAX, ETA_CHG = 25, 200, 0.95
-Δt, CYCLE_CAP = 0.25, 200
+battery_config = get_battery_config()
+P_MAX = battery_config.p_max_mw
+E_MAX = battery_config.e_max_mwh
+ETA_CHG = battery_config.eta_chg
+Δt = battery_config.delta_t
+CYCLE_CAP = E_MAX  # MWh discharged per day
 
 random.seed(42)
 np.random.seed(42)
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 # ─────────────────────────────────────────

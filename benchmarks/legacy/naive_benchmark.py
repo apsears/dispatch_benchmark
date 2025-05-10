@@ -14,13 +14,15 @@ from virtual_energy.optimisers.online_mpc import (
     run_mpc as online_mpc_run,
     FORECASTERS,
 )
+from virtual_energy.config import get_battery_config
 
-# Default battery config
+# Get battery config from configuration
+battery_config = get_battery_config()
 CONFIG = BatteryConfig(
-    delta_t=0.25,
-    eta_chg=0.95,
-    p_max_mw=25,
-    e_max_mwh=200,
+    delta_t=battery_config.delta_t,
+    eta_chg=battery_config.eta_chg,
+    p_max_mw=battery_config.p_max_mw,
+    e_max_mwh=battery_config.e_max_mwh,
 )
 
 
@@ -41,9 +43,7 @@ def load_price_data(path, node="HB_HOUSTON"):
             + " "
             + (node_data["deliveryHour"] - 1).astype(str).str.zfill(2)
             + ":"
-            + ((node_data["deliveryInterval"] - 1) * 15)
-            .astype(str)
-            .str.zfill(2)
+            + ((node_data["deliveryInterval"] - 1) * 15).astype(str).str.zfill(2)
         )
 
         prices_df = pd.DataFrame(
@@ -71,9 +71,7 @@ def load_price_data(path, node="HB_HOUSTON"):
                 + " "
                 + (raw_df["deliveryHour"] - 1).astype(str).str.zfill(2)
                 + ":"
-                + ((raw_df["deliveryInterval"] - 1) * 15)
-                .astype(str)
-                .str.zfill(2)
+                + ((raw_df["deliveryInterval"] - 1) * 15).astype(str).str.zfill(2)
             )
             prices_df = pd.DataFrame(
                 {
@@ -109,9 +107,7 @@ def run_model(prices_df, model_type, forecaster=None):
 
         # Convert to series format needed by online_mpc
         price_series = prices_df.set_index("timestamp")["SettlementPointPrice"]
-        dispatch = online_mpc_run(
-            price_series, 32, forecaster=FORECASTERS[forecaster]
-        )
+        dispatch = online_mpc_run(price_series, 32, forecaster=FORECASTERS[forecaster])
 
         return {
             "model": f"online_mpc_{forecaster}",
@@ -165,9 +161,7 @@ def main():
             print(f"\nRunning Online MPC with {forecaster} forecaster...")
             mpc_result = run_model(prices_df, "online_mpc", forecaster)
             results.append(mpc_result)
-            print(
-                f"MPC with {forecaster} revenue: ${mpc_result['revenue']:,.2f}"
-            )
+            print(f"MPC with {forecaster} revenue: ${mpc_result['revenue']:,.2f}")
         except Exception as e:
             print(f"Error running MPC with {forecaster}: {e}")
             import traceback
@@ -185,9 +179,7 @@ def main():
 
         # Print results table
         print("\n=== BENCHMARK RESULTS ===")
-        comparison = results_df[
-            ["model", "revenue_k", "runtime_seconds"]
-        ].copy()
+        comparison = results_df[["model", "revenue_k", "runtime_seconds"]].copy()
         comparison = comparison.rename(
             columns={
                 "model": "Model",
@@ -213,9 +205,7 @@ def main():
 
             # Calculate percentage difference
             if naive_revenue != 0:
-                pct_diff = (
-                    (ridge_revenue - naive_revenue) / abs(naive_revenue)
-                ) * 100
+                pct_diff = ((ridge_revenue - naive_revenue) / abs(naive_revenue)) * 100
                 if pct_diff > 0:
                     print(f"\nRidge outperforms Naive by: +{pct_diff:.1f}%")
                 else:

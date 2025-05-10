@@ -229,33 +229,60 @@ def run_mpc(price_df: pd.DataFrame, cfg: BatteryConfig, model: Ridge, node: str)
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--prices", default="data/prices_wide.csv")
-    ap.add_argument("--node", default="ALP_BESS_RN")
-    ap.add_argument(
-        "--capacity", type=float, default=200, help="Battery capacity in MWh"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--prices", default="data/prices_wide.csv")
+    parser.add_argument("--node", default="ALP_BESS_RN")
+    parser.add_argument(
+        "--capacity", type=float, default=None, help="Battery capacity in MWh"
     )
-    ap.add_argument(
-        "--power", type=float, default=25, help="Max charge/discharge power in MW"
+    parser.add_argument(
+        "--power", type=float, default=None, help="Max charge/discharge power in MW"
     )
-    ap.add_argument(
+    parser.add_argument(
         "--efficiency",
         type=float,
-        default=0.95,
+        default=None,
         help="Battery charging efficiency (0-1)",
     )
-    ap.add_argument(
+    parser.add_argument(
+        "--initial_soc",
+        type=float,
+        default=None,
+        help="Initial state of charge as fraction (0-1)",
+    )
+    parser.add_argument(
         "--list-nodes",
         action="store_true",
         help="List all available nodes in the price data and exit",
     )
-    args = ap.parse_args()
+    args = parser.parse_args()
+
+    # Get battery config, use command line args to override if provided
+    from virtual_energy.config import get_battery_config
+
+    battery_config = get_battery_config()
+
+    # Use args to override battery config if provided
+    capacity = args.capacity if args.capacity is not None else battery_config.e_max_mwh
+    power = args.power if args.power is not None else battery_config.p_max_mw
+    efficiency = (
+        args.efficiency if args.efficiency is not None else battery_config.eta_chg
+    )
+    delta_t = battery_config.delta_t  # Always use config value for delta_t
+
+    # Initial SoC (default to 50% if not in args or invalid)
+    initial_soc_pct = (
+        args.initial_soc
+        if args.initial_soc is not None
+        else battery_config.initial_soc_pct
+    )
+    initial_soc = initial_soc_pct * capacity
 
     cfg = BatteryConfig(
-        delta_t=0.25,
-        eta_chg=args.efficiency,
-        p_max_mw=args.power,
-        e_max_mwh=args.capacity,
+        delta_t=delta_t,
+        eta_chg=efficiency,
+        p_max_mw=power,
+        e_max_mwh=capacity,
     )
 
     print("Loading price data…")

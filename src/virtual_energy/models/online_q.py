@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """
-online_q_simple.py  –  dependency-free tabular Q-learning battery controller
+online_q.py - Q-learning for battery dispatch
 
-State space (12 states)
------------------------
-price_bin ∈ {low, mid, high}  →  0,1,2
+State variables:
 soc_bin   ∈ {0-50, 50-100, 100-150, 150-200 MWh}  →  0..3
-state_id  = price_bin * 10 + soc_bin              →  0..23 (only 12 reachable)
+price_bin ∈ {lo, med, hi}  → 0..2
+hour      ∈ {0..23}
 
-Actions (3)
------------
+Actions:
 0 : charge  (-25 MW)
-1 : hold    (  0 MW)
+1 : hold    (0 MW)
 2 : discharge (+25 MW)
 
 Everything is learned *online*, no pre-train pass.  A single --seed value
@@ -19,15 +17,24 @@ makes results repeatable.
 """
 
 from __future__ import annotations
-import argparse, random, warnings
+import argparse, warnings, time
 from pathlib import Path
 import numpy as np, pandas as pd
+from tqdm import tqdm
+import random
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-# battery & market constants --------------------------------------------------
-P_MAX, E_MAX, ETA_CHG = 25, 200, 0.95  # MW, MWh
-DT, CYCLE_CAP = 0.25, 200  # h,  MWh per day
+# ──────────────────────────────────────────────────────────────────────────────
+# Get battery parameters from config
+from virtual_energy.config import get_battery_config
+
+battery_config = get_battery_config()
+P_MAX = battery_config.p_max_mw
+E_MAX = battery_config.e_max_mwh
+ETA_CHG = battery_config.eta_chg
+DT = battery_config.delta_t
+CYCLE_CAP = E_MAX  # MWh discharged per day
 WINDOW = 96 * 3  # 3-day trailing window for price bins
 
 

@@ -29,12 +29,16 @@ import numpy as np, pandas as pd
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-# Battery constants
-P_MAX = 25  # MW   (per 15-min)
-E_MAX = 200  # MWh
-ETA_CHG = 0.95
-DELTA_T = 0.25  # h
-CYCLE_CAP = 200  # MWh discharged per day
+# ──────────────────────────────────────────────────────────────────────────────
+# Get battery parameters from config
+from virtual_energy.config import get_battery_config
+
+battery_config = get_battery_config()
+P_MAX = battery_config.p_max_mw
+E_MAX = battery_config.e_max_mwh
+ETA_CHG = battery_config.eta_chg
+DELTA_T = battery_config.delta_t
+CYCLE_CAP = E_MAX  # MWh discharged per day
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -55,20 +59,20 @@ def calculate_thresholds(
 ) -> tuple[float, float]:
     """
     Calculate price thresholds for battery dispatch decisions.
-    
+
     Args:
         price_history: Historical price series
         pct: Percentile threshold (we use pct and 100-pct)
-        
+
     Returns:
         Tuple of (lower_threshold, upper_threshold)
     """
     if len(price_history) < 30:  # safety: need ≥30 samples
         return np.inf, np.inf
-    
+
     p_low = np.percentile(price_history, pct)
     p_high = np.percentile(price_history, 100 - pct)
-    
+
     return p_low, p_high
 
 
@@ -78,12 +82,12 @@ def quartile_dispatch(
 ) -> pd.DataFrame:
     """
     Return dispatch DataFrame using percentile rule.
-    
+
     Args:
         series: Price series
         pct: Percentile threshold
         window: Rolling window length in intervals
-        
+
     Returns:
         DataFrame with dispatch schedule
     """

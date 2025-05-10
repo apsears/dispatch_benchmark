@@ -33,13 +33,15 @@ from virtual_energy.optimisers.online_mpc import (
     FORECASTERS as online_mpc_forecasters,
 )
 from virtual_energy.forecasters.quartile import quartile_dispatch
+from virtual_energy.config import get_battery_config
 
-# Global battery config for multiprocessing
+# Global battery config for multiprocessing - initialize with values from config
+battery_config = get_battery_config()
 DEFAULT_CFG = BatteryConfig(
-    delta_t=0.25,
-    eta_chg=0.95,
-    p_max_mw=25,
-    e_max_mwh=200,
+    delta_t=battery_config.delta_t,
+    eta_chg=battery_config.eta_chg,
+    p_max_mw=battery_config.p_max_mw,
+    e_max_mwh=battery_config.e_max_mwh,
 )
 
 
@@ -74,9 +76,7 @@ def load_prices(prices_path, node=None, max_nodes=100):
             raw_df = raw_df[raw_df["settlementPoint"].isin(settlement_points)]
 
         # Check for duplicates in the timestamp and settlementPoint combination
-        dup_count = raw_df.duplicated(
-            subset=["timestamp", "settlementPoint"]
-        ).sum()
+        dup_count = raw_df.duplicated(subset=["timestamp", "settlementPoint"]).sum()
         if dup_count > 0:
             print(
                 f"Found {dup_count} duplicate timestamp-settlementPoint combinations. Dropping duplicates..."
@@ -92,9 +92,7 @@ def load_prices(prices_path, node=None, max_nodes=100):
             values="settlementPointPrice",
         ).reset_index()
 
-        print(
-            f"Created wide format with {len(df)} rows and {len(df.columns)} columns"
-        )
+        print(f"Created wide format with {len(df)} rows and {len(df.columns)} columns")
     else:
         # Already in wide format
         df = raw_df
@@ -125,8 +123,7 @@ def filter_week(df, start_date=None):
 
     # Filter to the week
     return df[
-        (df["timestamp"].dt.date >= start_date)
-        & (df["timestamp"].dt.date < end_date)
+        (df["timestamp"].dt.date >= start_date) & (df["timestamp"].dt.date < end_date)
     ]
 
 
@@ -244,7 +241,7 @@ def process_node(node, all_prices, start_date, output_dir):
         except Exception as e:
             print(f"Error running Oracle LP: {e}")
 
-        # 2. Run Online MPC with ridge model only
+        # 2. Run Online MPC with ridge regression
         try:
             result = run_online_mpc(weekly_prices, DEFAULT_CFG, "ridge")
             node_results.append(result)
@@ -319,21 +316,35 @@ def run_benchmark(
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
 
+    # Get battery config from configuration
+    battery_config = get_battery_config()
+
+    # Configure battery parameters
+    battery_params = {
+        "delta_t": battery_config.delta_t,
+        "eta_chg": battery_config.eta_chg,
+        "p_max_mw": battery_config.p_max_mw,
+        "e_max_mwh": battery_config.e_max_mwh,
+        "initial_soc_pct": battery_config.initial_soc_pct,
+    }
+
     # Load all price data based on format
     if data_format.lower() == "tidy":
         # For tidy format, we need to load and transform
         print(f"Loading tidy format data from {prices_path}")
         raw_df = pd.read_csv(prices_path)
-        
+
         # Check for different tidy format variants
         if all(col in raw_df.columns for col in ["node", "timestamp", "price"]):
             # ERCOT simplified format (node, timestamp, price)
-            print("Detected ERCOT simplified tidy format with node, timestamp, price columns")
-            
+            print(
+                "Detected ERCOT simplified tidy format with node, timestamp, price columns"
+            )
+
             # Ensure timestamp is datetime
             if not pd.api.types.is_datetime64_dtype(raw_df["timestamp"]):
                 raw_df["timestamp"] = pd.to_datetime(raw_df["timestamp"])
-                
+
             # Filter to max_nodes if specified
             unique_nodes = raw_df["node"].unique()
             print(f"Found {len(unique_nodes)} unique nodes")
@@ -341,30 +352,34 @@ def run_benchmark(
                 unique_nodes = unique_nodes[:max_nodes]
                 print(f"Filtering to first {max_nodes} nodes")
                 raw_df = raw_df[raw_df["node"].isin(unique_nodes)]
-                
+
             # Drop duplicates if necessary
             dup_count = raw_df.duplicated(subset=["timestamp", "node"]).sum()
             if dup_count > 0:
-                print(f"Found {dup_count} duplicate timestamp-node combinations. Dropping duplicates...")
-                raw_df = raw_df.drop_duplicates(subset=["timestamp", "node"], keep="first")
-                
+                print(
+                    f"Found {dup_count} duplicate timestamp-node combinations. Dropping duplicates..."
+                )
+                raw_df = raw_df.drop_duplicates(
+                    subset=["timestamp", "node"], keep="first"
+                )
+
             # Pivot to wide format
             all_prices = raw_df.pivot(
-                index="timestamp", 
-                columns="node", 
-                values="price"
+                index="timestamp", columns="node", values="price"
             ).reset_index()
-            
-            print(f"Converted ERCOT tidy to wide format with {len(all_prices)} rows and {len(all_prices.columns)} columns")
-        
+
+            print(
+                f"Converted ERCOT tidy to wide format with {len(all_prices)} rows and {len(all_prices.columns)} columns"
+            )
+
         elif all(col in raw_df.columns for col in ["zone", "timestamp", "price"]):
             # NYISO format (zone, timestamp, price)
             print("Detected NYISO tidy format with zone, timestamp, price columns")
-            
+
             # Ensure timestamp is datetime
             if not pd.api.types.is_datetime64_dtype(raw_df["timestamp"]):
                 raw_df["timestamp"] = pd.to_datetime(raw_df["timestamp"])
-                
+
             # Filter to max_nodes if specified
             unique_zones = raw_df["zone"].unique()
             print(f"Found {len(unique_zones)} unique zones")
@@ -372,26 +387,39 @@ def run_benchmark(
                 unique_zones = unique_zones[:max_nodes]
                 print(f"Filtering to first {max_nodes} zones")
                 raw_df = raw_df[raw_df["zone"].isin(unique_zones)]
-                
+
             # Drop duplicates if necessary
             dup_count = raw_df.duplicated(subset=["timestamp", "zone"]).sum()
             if dup_count > 0:
-                print(f"Found {dup_count} duplicate timestamp-zone combinations. Dropping duplicates...")
-                raw_df = raw_df.drop_duplicates(subset=["timestamp", "zone"], keep="first")
-                
+                print(
+                    f"Found {dup_count} duplicate timestamp-zone combinations. Dropping duplicates..."
+                )
+                raw_df = raw_df.drop_duplicates(
+                    subset=["timestamp", "zone"], keep="first"
+                )
+
             # Pivot to wide format
             all_prices = raw_df.pivot(
-                index="timestamp", 
-                columns="zone", 
-                values="price"
+                index="timestamp", columns="zone", values="price"
             ).reset_index()
-            
-            print(f"Converted NYISO tidy to wide format with {len(all_prices)} rows and {len(all_prices.columns)} columns")
-            
-        elif all(col in raw_df.columns for col in ["deliveryDate", "settlementPoint", "settlementPointPrice", "deliveryHour", "deliveryInterval"]):
+
+            print(
+                f"Converted NYISO tidy to wide format with {len(all_prices)} rows and {len(all_prices.columns)} columns"
+            )
+
+        elif all(
+            col in raw_df.columns
+            for col in [
+                "deliveryDate",
+                "settlementPoint",
+                "settlementPointPrice",
+                "deliveryHour",
+                "deliveryInterval",
+            ]
+        ):
             # ERCOT standard format
             print("Detected standard ERCOT tidy format")
-            
+
             # Verify it's actually in tidy format
             required_columns = [
                 "deliveryDate",
@@ -401,9 +429,7 @@ def run_benchmark(
                 "deliveryInterval",
             ]
             if not all(col in raw_df.columns for col in required_columns):
-                raise ValueError(
-                    f"Tidy format requires columns: {required_columns}"
-                )
+                raise ValueError(f"Tidy format requires columns: {required_columns}")
 
             # Create timestamp column from date, hour, and interval
             raw_df["timestamp"] = pd.to_datetime(
@@ -423,9 +449,7 @@ def run_benchmark(
                 raw_df = raw_df[raw_df["settlementPoint"].isin(settlement_points)]
 
             # Drop duplicates if necessary
-            dup_count = raw_df.duplicated(
-                subset=["timestamp", "settlementPoint"]
-            ).sum()
+            dup_count = raw_df.duplicated(subset=["timestamp", "settlementPoint"]).sum()
             if dup_count > 0:
                 print(
                     f"Found {dup_count} duplicate timestamp-settlementPoint combinations. Dropping duplicates..."
@@ -498,9 +522,7 @@ def run_benchmark(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Benchmark battery dispatch models"
-    )
+    parser = argparse.ArgumentParser(description="Benchmark battery dispatch models")
     parser.add_argument(
         "--prices",
         default="concatenated_all_data.csv",

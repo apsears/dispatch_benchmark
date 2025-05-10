@@ -134,16 +134,22 @@ def main():
         help="Path to save the output wide-format CSV",
     )
     parser.add_argument(
-        "--capacity", type=float, default=200, help="Battery capacity in MWh"
+        "--capacity", type=float, default=None, help="Battery capacity in MWh"
     )
     parser.add_argument(
-        "--power", type=float, default=25, help="Max charge/discharge power in MW"
+        "--power", type=float, default=None, help="Max charge/discharge power in MW"
     )
     parser.add_argument(
         "--efficiency",
         type=float,
-        default=0.95,
+        default=None,
         help="Battery charging efficiency (0-1)",
+    )
+    parser.add_argument(
+        "--initial_soc",
+        type=float,
+        default=None,
+        help="Initial state of charge as fraction (0-1)",
     )
     args = parser.parse_args()
 
@@ -152,13 +158,26 @@ def main():
         process_settlement_zips(args.source_dir, args.output_file)
         return
 
-    # Create battery config from command line arguments
-    cfg = BatteryConfig(
-        delta_t=0.25,
-        eta_chg=args.efficiency,
-        p_max_mw=args.power,
-        e_max_mwh=args.capacity,
+    # Get battery config, use command line args to override if provided
+    from virtual_energy.config import get_battery_config
+
+    battery_config = get_battery_config()
+
+    # Use args to override battery config if provided
+    capacity = args.capacity if args.capacity is not None else battery_config.e_max_mwh
+    power = args.power if args.power is not None else battery_config.p_max_mw
+    efficiency = (
+        args.efficiency if args.efficiency is not None else battery_config.eta_chg
     )
+    delta_t = battery_config.delta_t  # Always use config value for delta_t
+
+    # Initial SoC (default to 50% if not in args or invalid)
+    initial_soc_pct = (
+        args.initial_soc
+        if args.initial_soc is not None
+        else battery_config.initial_soc_pct
+    )
+    initial_soc = initial_soc_pct * capacity
 
     # ------------------------------------------------------------------
     # Data prep
@@ -185,7 +204,15 @@ def main():
     # Oracle optimization (assumes perfect knowledge of future prices)
     # ------------------------------------------------------------------
     print("Running Oracle optimization with perfect price knowledge...")
-    prob, dispatch = create_and_solve_model(prices, cfg)
+    prob, dispatch = create_and_solve_model(
+        prices,
+        BatteryConfig(
+            delta_t=delta_t,
+            eta_chg=efficiency,
+            p_max_mw=power,
+            e_max_mwh=capacity,
+        ),
+    )
 
     total_rev = dispatch["Revenue$"].sum()
     print(f"Status: {LpStatus[prob.status]}")

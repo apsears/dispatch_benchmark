@@ -4,6 +4,15 @@ online_mpc.py  –  Non-clairvoyant MPC with pluggable forecast models
 
 This module implements the online Model Predictive Control (MPC) optimizer
 that uses price forecasts to make battery dispatch decisions.
+
+Models implemented
+------------------
+ewma   : EWMA of trailing prices in the *same quarter-hour slot*  (α = 0.2)
+ridge  : Ridge-regression on calendar dummies   (fit every step, but fast)
+arima  : ARIMA(2,0,2) on the whole history      (slow, demo only)
+
+Extend by adding  forecast_X(train_series, t0, horizon)->np.ndarray
+and inserting into the FORECASTERS dict at the bottom.
 """
 
 import argparse
@@ -18,12 +27,19 @@ from tqdm import tqdm
 # Import forecasters
 from virtual_energy.forecasters import ridge, naive
 
+# Import config
+from virtual_energy.config import get_battery_config
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Battery & solver constants
-P_MAX, E_MAX, ETA_CHG = 25, 200, 0.95  # MW, MWh, efficiency
-DELTA_T, CYCLE_CAP = 0.25, 200  # h ,  MWh  (per day)
+# Get battery parameters from config
+battery_config = get_battery_config()
+P_MAX = battery_config.p_max_mw
+E_MAX = battery_config.e_max_mwh
+ETA_CHG = battery_config.eta_chg
+DELTA_T = battery_config.delta_t
+CYCLE_CAP = E_MAX  # MWh discharged per day
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -35,9 +51,7 @@ def load_price_csv(path: Path, node: str | None = None) -> pd.Series:
             raise ValueError(f"Node '{node}' not in CSV columns.")
         df["SettlementPointPrice"] = df[node]
     return (
-        df.set_index("timestamp")["SettlementPointPrice"]
-        .sort_index()
-        .asfreq("15min")
+        df.set_index("timestamp")["SettlementPointPrice"].sort_index().asfreq("15min")
     )
 
 
@@ -69,15 +83,12 @@ def solve_first_action(price_path, soc0, discharged_today):
     p_neg = {h: pulp.LpVariable(f"c_{h}", 0, P_MAX) for h in range(H)}
     soc = {h: pulp.LpVariable(f"soc_{h}", 0, E_MAX) for h in range(H)}
 
-    m += pulp.lpSum(
-        price_path[h] * (p_pos[h] - p_neg[h]) * DELTA_T for h in range(H)
-    )
+    m += pulp.lpSum(price_path[h] * (p_pos[h] - p_neg[h]) * DELTA_T for h in range(H))
     for h in range(H):
         Δe = (ETA_CHG * p_neg[h] - p_pos[h]) * DELTA_T
         m += soc[h] == (soc0 if h == 0 else soc[h - 1]) + Δe
     m += (
-        pulp.lpSum(p_pos[h] * DELTA_T for h in range(H))
-        <= CYCLE_CAP - discharged_today
+        pulp.lpSum(p_pos[h] * DELTA_T for h in range(H)) <= CYCLE_CAP - discharged_today
     )
     m.solve(pulp.PULP_CBC_CMD(msg=False))
     return p_pos[0].value(), p_neg[0].value()
@@ -92,9 +103,7 @@ def run_mpc(series: pd.Series, horizon: int, forecaster):
     hist_indices = []
     rec = []
 
-    for ts, price in tqdm(
-        series.items(), total=len(series), desc="Running MPC"
-    ):
+    for ts, price in tqdm(series.items(), total=len(series), desc="Running MPC"):
         hist_values.append(price)
         hist_indices.append(ts)
         hist = pd.Series(hist_values, index=hist_indices)
@@ -147,9 +156,7 @@ if __name__ == "__main__":
     disp = run_mpc(prices, args.horizon, FORECASTERS[args.model])
     run_sec = time.perf_counter() - t0
 
-    print(
-        f"Finished in {run_sec:.1f}s   |   Revenue = ${disp['Revenue$'].sum():,.0f}"
-    )
+    print(f"Finished in {run_sec:.1f}s   |   Revenue = ${disp['Revenue$'].sum():,.0f}")
     out = Path("dispatch_schedule.csv")
     disp[
         [

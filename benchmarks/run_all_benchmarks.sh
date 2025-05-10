@@ -5,11 +5,12 @@
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+REPO_ROOT="$(cd .. && pwd)"
 
 # Activate virtual environment if not already active
 if [[ -z "$VIRTUAL_ENV" ]]; then
     echo "Activating virtual environment..."
-    source ../.venv/bin/activate
+    source .venv/bin/activate
 fi
 
 # Create results directories
@@ -20,16 +21,24 @@ ERCOT_SUMMARY="results/summary/ercot"
 NYISO_SUMMARY="results/summary/nyiso"
 PLOTS_DIR="results/plots"
 
+# Settings
+MAX_NODES=100
+N_JOBS=6    
+
 mkdir -p "$ERCOT_OUTPUT" "$NYISO_OUTPUT" "$SUMMARY_OUTPUT" "$ERCOT_SUMMARY" "$NYISO_SUMMARY" "$PLOTS_DIR"
 
 # Display setup information
 echo "Setting up benchmark environment..."
 echo "Python: $(which python3)"
 echo "Working directory: $(pwd)"
+echo "Repository root: $REPO_ROOT"
+
+# Make sure the virtual_energy package is in the Python path
+export PYTHONPATH=$REPO_ROOT/src:$PYTHONPATH
 
 # Check for required data files
-ERCOT_DATA="../data/ercot/2024_RealTime_SPP.csv"
-NYISO_DATA="../data/nyiso/2024_DayAhead_LBMP.csv"
+ERCOT_DATA="$REPO_ROOT/data/ercot/2024_RealTime_SPP.csv"
+NYISO_DATA="$REPO_ROOT/data/nyiso/2024_DayAhead_LBMP.csv"
 
 if [[ ! -f "$ERCOT_DATA" ]]; then
     echo "Error: ERCOT data file not found at $ERCOT_DATA"
@@ -43,44 +52,31 @@ fi
 
 echo "Data files found. Starting benchmarks..."
 
-# Run ERCOT and NYISO benchmarks in parallel
+# Run ERCOT and NYISO benchmarks in sequence (not parallel) to diagnose issues
 echo "Starting ERCOT benchmark..."
 python3 comprehensive_benchmark.py \
     --prices-path "$ERCOT_DATA" \
     --data-format tidy \
     --output-dir "$ERCOT_OUTPUT" \
-    --max-nodes 10 \
-    --n-jobs 4 \
-    --iso ERCOT &
+    --max-nodes "$MAX_NODES" \
+    --n-jobs "$N_JOBS"
 
-ERCOT_PID=$!
+if [[ $? -ne 0 ]]; then
+    echo "ERCOT benchmark failed"
+    exit 1
+fi
 
 echo "Starting NYISO benchmark..."
 python3 comprehensive_benchmark.py \
     --prices-path "$NYISO_DATA" \
     --data-format tidy \
     --output-dir "$NYISO_OUTPUT" \
-    --max-nodes 10 \
-    --n-jobs 4 \
-    --iso NYISO &
+    --max-nodes "$MAX_NODES" \
+    --n-jobs "$N_JOBS"
 
-NYISO_PID=$!
-
-# Wait for both benchmarks to complete
-echo "Waiting for benchmarks to complete..."
-wait $ERCOT_PID
-ERCOT_STATUS=$?
-wait $NYISO_PID
-NYISO_STATUS=$?
-
-if [[ $ERCOT_STATUS -ne 0 ]]; then
-    echo "ERCOT benchmark failed with status $ERCOT_STATUS"
-    exit $ERCOT_STATUS
-fi
-
-if [[ $NYISO_STATUS -ne 0 ]]; then
-    echo "NYISO benchmark failed with status $NYISO_STATUS"
-    exit $NYISO_STATUS
+if [[ $? -ne 0 ]]; then
+    echo "NYISO benchmark failed"
+    exit 1
 fi
 
 echo "Benchmarks completed successfully."

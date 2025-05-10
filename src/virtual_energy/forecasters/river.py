@@ -23,11 +23,17 @@ from river import bandit, preprocessing
 from river import proba  # Import for ThompsonSampling distribution
 import random
 
-warnings.filterwarnings("ignore", category=FutureWarning)
+# Get battery parameters from config
+from virtual_energy.config import get_battery_config
 
-# ─────────── battery constants ───────────
-P_MAX, E_MAX, ETA_CHG = 25, 200, 0.95
-Δt, CYCLE_CAP = 0.25, 200
+battery_config = get_battery_config()
+P_MAX = battery_config.p_max_mw
+E_MAX = battery_config.e_max_mwh
+ETA_CHG = battery_config.eta_chg
+Δt = battery_config.delta_t
+CYCLE_CAP = E_MAX  # MWh discharged per day
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 random.seed(42)
 np.random.seed(42)
@@ -46,7 +52,7 @@ def load_prices(csv: Path, node: str | None = None) -> pd.Series:
 def features(price, mean_p, std_p, soc, hrs_left, e_max=200):
     """
     Extract features for contextual bandits.
-    
+
     Args:
         price: Current price
         mean_p: Mean price (from scaler)
@@ -54,7 +60,7 @@ def features(price, mean_p, std_p, soc, hrs_left, e_max=200):
         soc: State of charge
         hrs_left: Hours left in the day
         e_max: Maximum battery capacity
-        
+
     Returns:
         Dictionary of features
     """
@@ -70,20 +76,20 @@ def features(price, mean_p, std_p, soc, hrs_left, e_max=200):
 def get_learner(kind: str, n_arms=3, alpha=0.3, eps=0.1, seed=None):
     """
     Return a River bandit instance that works from 0.19 through 0.22.
-    
+
     Args:
         kind: Algorithm type ('linucb', 'egreedy', or 'thompson')
         n_arms: Number of arms for the bandit
         alpha: Exploration parameter for LinUCB
         eps: Exploration probability for EpsilonGreedy
         seed: Random seed for reproducibility
-        
+
     Returns:
         A River bandit instance
     """
     if seed is not None:
         np.random.seed(seed)
-    
+
     if kind == "linucb":
         try:  # older API (needs n_arms)
             return bandit.LinUCBDisjoint(alpha=alpha, n_arms=n_arms)
@@ -114,22 +120,22 @@ def get_learner(kind: str, n_arms=3, alpha=0.3, eps=0.1, seed=None):
 
 # ─────────────────────────────────────────
 def run_river_dispatch(
-    series: pd.Series, 
-    algo: str = "egreedy", 
-    alpha: float = 0.3, 
+    series: pd.Series,
+    algo: str = "egreedy",
+    alpha: float = 0.3,
     eps: float = 0.1,
-    seed: int = None
+    seed: int = None,
 ):
     """
     Run a battery dispatch using River bandits.
-    
+
     Args:
         series: Price series
         algo: Algorithm type ('linucb', 'egreedy', or 'thompson')
         alpha: Exploration parameter for LinUCB
         eps: Exploration probability for EpsilonGreedy
         seed: Random seed for reproducibility
-        
+
     Returns:
         DataFrame with dispatch schedule
     """
@@ -151,7 +157,7 @@ def run_river_dispatch(
             np.sqrt(scaler.vars.get("price", 1)),
             soc,
             hrs_left,
-            E_MAX
+            E_MAX,
         )
         scaler.learn_one(ctx_raw)
         ctx = scaler.transform_one(ctx_raw)

@@ -64,9 +64,7 @@ def three_day_prices():
 @pytest.fixture
 def battery_config():
     """Fixture that returns a standard battery configuration."""
-    return BatteryConfig(
-        delta_t=0.25,
-        eta_chg=0.95,
-        p_max_mw=25,
-        e_max_mwh=200,
-    )
+    # Import here to avoid circular imports
+    from virtual_energy.config import get_battery_config
+
+    return get_battery_config()

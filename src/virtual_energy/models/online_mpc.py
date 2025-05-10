@@ -21,9 +21,15 @@ from tqdm import tqdm
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Battery & solver constants
-P_MAX, E_MAX, ETA_CHG = 25, 200, 0.95  # MW, MWh, efficiency
-DELTA_T, CYCLE_CAP = 0.25, 200  # h ,  MWh  (per day)
+# Get battery parameters from config
+from virtual_energy.config import get_battery_config
+
+battery_config = get_battery_config()
+P_MAX = battery_config.p_max_mw
+E_MAX = battery_config.e_max_mwh
+ETA_CHG = battery_config.eta_chg
+DELTA_T = battery_config.delta_t
+CYCLE_CAP = E_MAX  # MWh discharged per day
 
 
 # ──────────────────────────────────────────────────────────────────────────────
