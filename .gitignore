@@ -1,0 +1,8 @@
+data/source/
+
+*.egg-info/
+**/__pycache__/
+.cursorrules
+.env
+data
+junk

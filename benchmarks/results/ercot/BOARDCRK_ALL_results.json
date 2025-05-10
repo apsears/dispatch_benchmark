@@ -1,0 +1,42 @@
+[
+  {
+    "model": "oracle_LP",
+    "revenue": 37036.614638221006,
+    "runtime_seconds": 0.3375895023345947
+  },
+  {
+    "model": "online_mpc_ridge",
+    "forecast_model": "ridge",
+    "horizon": 32,
+    "revenue": 18561.608214981516,
+    "runtime_seconds": 16.777549028396606
+  },
+  {
+    "model": "online_mpc_naive",
+    "forecast_model": "naive",
+    "horizon": 32,
+    "revenue": 2028.85625,
+    "runtime_seconds": 9.45552396774292
+  },
+  {
+    "model": "online_quartile_p10",
+    "percentile": 10,
+    "window": 672,
+    "revenue": 24556.966940789476,
+    "runtime_seconds": 0.6652333736419678
+  },
+  {
+    "model": "online_quartile_p25",
+    "percentile": 25,
+    "window": 672,
+    "revenue": 14036.868421052632,
+    "runtime_seconds": 0.6910073757171631
+  },
+  {
+    "model": "online_quartile_p45",
+    "percentile": 45,
+    "window": 672,
+    "revenue": 15500.745065789473,
+    "runtime_seconds": 0.6998319625854492
+  }
+]
