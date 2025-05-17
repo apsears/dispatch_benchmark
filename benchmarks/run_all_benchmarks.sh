@@ -12,18 +12,14 @@ START_TIME=$(date +%s)
 START_DATETIME=$(date "+%Y-%m-%d %H:%M:%S")
 
 # Create results directories
-ERCOT_OUTPUT="results/ercot"
-NYISO_OUTPUT="results/nyiso"
 SUMMARY_OUTPUT="results/summary/combined"
-ERCOT_SUMMARY="results/summary/ercot"
-NYISO_SUMMARY="results/summary/nyiso"
 PLOTS_DIR="results/plots"
 
 # Settings
 MAX_NODES=16
-N_JOBS=32
+N_JOBS=16
 
-mkdir -p "$ERCOT_OUTPUT" "$NYISO_OUTPUT" "$SUMMARY_OUTPUT" "$ERCOT_SUMMARY" "$NYISO_SUMMARY" "$PLOTS_DIR"
+mkdir -p "$SUMMARY_OUTPUT" "$PLOTS_DIR"
 
 # Display setup information
 echo "Setting up benchmark environment..."
@@ -31,37 +27,14 @@ echo "Python: $(which python3)"
 echo "Working directory: $(pwd)"
 echo "Repository root: $REPO_ROOT"
 
-# Make sure the virtual_energy package is in the Python path
-export PYTHONPATH=$REPO_ROOT/src:$PYTHONPATH
+# Make the individual benchmark scripts executable
+chmod +x run_ercot_benchmark.sh run_nyiso_benchmark.sh
 
-# Check for required data files
-ERCOT_DATA="$REPO_ROOT/data/ercot/2024_RealTime_SPP.csv"
-NYISO_DATA="$REPO_ROOT/data/nyiso/2024_RealTime_LBMP.csv"
-
-if [[ ! -f "$ERCOT_DATA" ]]; then
-    echo "Error: ERCOT data file not found at $ERCOT_DATA"
-    exit 1
-fi
-
-if [[ ! -f "$NYISO_DATA" ]]; then
-    echo "Error: NYISO data file not found at $NYISO_DATA"
-    exit 1
-fi
-
-echo "Data files found. Starting benchmarks..."
-
-# Run ERCOT and NYISO benchmarks in sequence (not parallel) to diagnose issues
+# Run ERCOT and NYISO benchmarks in sequence
 echo "Starting ERCOT benchmark..."
 ERCOT_START_TIME=$(date +%s)
 
-python3 comprehensive_benchmark.py \
-    --prices-path "$ERCOT_DATA" \
-    --data-format tidy \
-    --output-dir "$ERCOT_OUTPUT" \
-    --max-nodes "$MAX_NODES" \
-    --n-jobs "$N_JOBS" \
-    --start-date "2024-01-01" \
-    # --end-date "2024-01-14"  # Limit to first week of 2024 for faster results
+./run_ercot_benchmark.sh $MAX_NODES $N_JOBS
 
 if [[ $? -ne 0 ]]; then
     echo "ERCOT benchmark failed"
@@ -78,15 +51,7 @@ echo "ERCOT benchmark completed in ${ERCOT_HOURS}h ${ERCOT_MINUTES}m ${ERCOT_SEC
 echo "Starting NYISO benchmark..."
 NYISO_START_TIME=$(date +%s)
 
-python3 comprehensive_benchmark.py \
-    --prices-path "$NYISO_DATA" \
-    --data-format tidy \
-    --data-frequency "15T" \
-    --output-dir "$NYISO_OUTPUT" \
-    --max-nodes "$MAX_NODES" \
-    --n-jobs "$N_JOBS" \
-    --start-date "2024-01-01" \
-    # --end-date "2024-01-07"  # Limit to first week of 2024 for faster results
+./run_nyiso_benchmark.sh $MAX_NODES $N_JOBS
 
 if [[ $? -ne 0 ]]; then
     echo "NYISO benchmark failed"
@@ -102,23 +67,10 @@ echo "NYISO benchmark completed in ${NYISO_HOURS}h ${NYISO_MINUTES}m ${NYISO_SEC
 
 echo "Benchmarks completed successfully."
 
-# Generate summaries
-echo "Generating summaries..."
+# Generate combined summary
+echo "Generating combined summary..."
 SUMMARY_START_TIME=$(date +%s)
 
-echo "Generating ERCOT summary..."
-python3 summarize_benchmarks.py \
-    --results-dir "$ERCOT_OUTPUT" \
-    --output-dir "$ERCOT_SUMMARY" \
-    --iso ERCOT
-
-echo "Generating NYISO summary..."
-python3 summarize_benchmarks.py \
-    --results-dir "$NYISO_OUTPUT" \
-    --output-dir "$NYISO_SUMMARY" \
-    --iso NYISO
-
-echo "Generating combined summary..."
 python3 summarize_benchmarks.py \
     --results-dir "results" \
     --output-dir "$SUMMARY_OUTPUT" \
@@ -132,11 +84,11 @@ echo "Summary generation completed in ${SUMMARY_MINUTES}m ${SUMMARY_SECONDS}s"
 
 echo "All benchmarks and summaries completed successfully!"
 echo "Results available in:"
-echo "  - ERCOT: $ERCOT_OUTPUT"
-echo "  - NYISO: $NYISO_OUTPUT"
+echo "  - ERCOT: results/ercot"
+echo "  - NYISO: results/nyiso"
 echo "  - Combined summary: $SUMMARY_OUTPUT"
-echo "  - ERCOT summary: $ERCOT_SUMMARY"
-echo "  - NYISO summary: $NYISO_SUMMARY"
+echo "  - ERCOT summary: results/summary/ercot"
+echo "  - NYISO summary: results/summary/nyiso"
 
 # Calculate and display elapsed time
 END_TIME=$(date +%s)
@@ -158,4 +110,4 @@ echo "NYISO benchmark:     ${NYISO_HOURS}h ${NYISO_MINUTES}m ${NYISO_SECONDS}s"
 echo "Summary generation:  ${SUMMARY_MINUTES}m ${SUMMARY_SECONDS}s"
 echo "-----------------------------------"
 echo "Total time elapsed:  ${HOURS}h ${MINUTES}m ${SECONDS}s"
-echo "====================================" 
+echo "===================================="
