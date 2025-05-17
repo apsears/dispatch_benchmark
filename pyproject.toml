@@ -72,23 +72,9 @@ initial_soc_frac = 0.0
 
 [tool.virtual-energy.optimisers]
 # List of optimisers to use in benchmarks
-enabled = ["oracle_lp", "online_mpc", "online_quartile", "online_naive"]
+enabled = ["oracle_lp", "online_mpc", "online_quartile"]
 
 [tool.virtual-energy.forecasters]
-# Naive forecaster settings (baseline)
-[tool.virtual-energy.forecasters.naive]
-# No specific parameters needed for naive forecaster
-
-# Ridge regression forecaster settings
-[tool.virtual-energy.forecasters.ridge]
-lags = 4
-alphas = [0.01, 0.1, 1.0, 10.0, 100.0]
-cv = 5  # Number of cross-validation folds for alpha selection
-
-# EWMA forecaster settings
-[tool.virtual-energy.forecasters.ewma]
-spans = [12, 24, 48, 96]  # Different window sizes to try
-
 # Quartile forecaster settings
 [tool.virtual-energy.forecasters.quartile]
 percentiles = [10, 25, 45]
@@ -98,4 +84,4 @@ window_sizes = [672]  # 7 days of 15-minute intervals
 # Benchmark configuration
 output_dir = "benchmark_results"
 max_nodes = 100  # Maximum number of nodes to benchmark
-n_jobs = -1  # Use all available cores for parallel processing 
+n_jobs = -1  # Use all available cores for parallel processing

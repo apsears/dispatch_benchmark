@@ -1,6 +1,12 @@
 # Virtual Energy
 
-This project provides utilities for downloading electricity price data and benchmarking battery dispatch models. The code primarily targets ERCOT but also supports NYISO.
+This project provides utilities for downloading electricity price data and benchmarking battery dispatch models. The code primarily targets ERCOT but also supports NYISO. We model a battery system with maximum energy capacity (`e_max_mwh`), maximum power capacity (`p_max_mw`), and round-trip efficiency (`eta_chg`). The battery operates in 15-minute intervals (`delta_t`).
+
+e_max_mwh = 200  
+p_max_mw = 25  
+eta_chg = 0.95  
+delta_t = 0.25  # 15-minute intervals  
+initial_soc_frac = 0.0  
 
 ## ERCOT Data Pipeline
 
