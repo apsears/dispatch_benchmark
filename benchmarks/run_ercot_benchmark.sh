@@ -27,7 +27,7 @@ echo "Python: $(which python3)"
 echo "Working directory: $(pwd)"
 echo "Repository root: $REPO_ROOT"
 
-# Make sure the virtual_energy package is in the Python path
+# Make sure the dispatch_benchmark package is in the Python path
 export PYTHONPATH=$REPO_ROOT/src:$PYTHONPATH
 
 # Check for required data files

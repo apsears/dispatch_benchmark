@@ -7,12 +7,11 @@ import json
 import subprocess
 import sys
 import pathlib
-import pytest
 
 CLI = [
     sys.executable,  # path to the same python
     "-m",
-    "virtual_energy.cli.ercot_cli",
+    "dispatch_benchmark.cli.ercot_cli",
     "backtest",
 ]
 
@@ -33,7 +32,7 @@ def test_backtest_single_node(tmp_path):
     cmd = [
         sys.executable,  # Use the same Python interpreter as the test
         "-m",
-        "virtual_energy.cli.ercot_cli",
+        "dispatch_benchmark.cli.ercot_cli",
         "backtest",
         "--prices",
         str(sample_csv),

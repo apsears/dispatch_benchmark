@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Command-line interface for NYISO data processing."""
 
-import sys
-import argparse
-from virtual_energy.io.nyiso import main as nyiso_main
+from dispatch_benchmark.io.nyiso import main as nyiso_main
+
 
 def main():
     """Entry point for the NYISO CLI command."""
     nyiso_main()
 
+
 if __name__ == "__main__":
-    main() 
+    main()

@@ -46,11 +46,11 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["virtual_energy", "virtual_energy.*"]
+include = ["dispatch_benchmark", "dispatch_benchmark.*"]
 
 [project.scripts]
-process-ercot = "virtual_energy.cli.ercot_cli:main"
-process-nyiso = "virtual_energy.cli.nyiso_cli:main"
+process-ercot = "dispatch_benchmark.cli.ercot_cli:main"
+process-nyiso = "dispatch_benchmark.cli.nyiso_cli:main"
 
 [tool.black]
 line-length = 88

@@ -11,14 +11,16 @@ python online_river.py --prices ercot.csv --algo thompson --seed 42  # reproduci
 """
 
 from pathlib import Path
-import argparse, warnings, time, random
-import numpy as np, pandas as pd
+import argparse
+import warnings
+import random
+import numpy as np
+import pandas as pd
 from river import bandit, preprocessing
 from river import proba  # Import for ThompsonSampling distribution
-from tqdm import tqdm
 
 # Get battery parameters from config
-from virtual_energy.config import get_battery_config
+from dispatch_benchmark.config import get_battery_config
 
 battery_config = get_battery_config()
 P_MAX = battery_config.p_max_mw
@@ -39,7 +41,9 @@ def load_prices(csv: Path, node: str | None = None) -> pd.Series:
     if node:
         df["SettlementPointPrice"] = df[node]
     return (
-        df.set_index("timestamp")["SettlementPointPrice"].sort_index().asfreq("15min")
+        df.set_index("timestamp")["SettlementPointPrice"]
+        .sort_index()
+        .asfreq("15min")
     )
 
 
@@ -128,7 +132,9 @@ def run(series: pd.Series, algo: str, alpha: float = 0.3, eps: float = 0.1):
 
         # ----- update learner -----
         try:
-            learner.update(arm, reward)  # standard update format for River 0.22.0
+            learner.update(
+                arm, reward
+            )  # standard update format for River 0.22.0
         except TypeError:
             try:
                 # Try the contextual update format

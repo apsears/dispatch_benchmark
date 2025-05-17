@@ -6,7 +6,6 @@ import os
 import json
 import subprocess
 import sys
-import pytest
 import tempfile
 from pathlib import Path
 
@@ -21,7 +20,7 @@ def test_cli_single_node(ercot_1day_csv):
         cmd = [
             sys.executable,  # Use the same Python interpreter as the test
             "-m",
-            "virtual_energy.cli.ercot_cli",
+            "dispatch_benchmark.cli.ercot_cli",
             "backtest",
             "--nodes",
             "HB_HOUSTON",
@@ -38,11 +37,17 @@ def test_cli_single_node(ercot_1day_csv):
 
         # Using a basic setup with the ERCOT CLI
         result = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env,
         )
 
         # Check that the command ran successfully
-        assert result.returncode == 0, f"Command failed with error: {result.stderr}"
+        assert (
+            result.returncode == 0
+        ), f"Command failed with error: {result.stderr}"
 
         # Check that the output contains the expected results
         assert "Results saved to" in result.stdout
@@ -65,7 +70,9 @@ def test_cli_single_node(ercot_1day_csv):
             assert isinstance(
                 model_results, list
             ), "Expected results to be a list of model results"
-            assert len(model_results) > 0, "No model results found in the output file"
+            assert (
+                len(model_results) > 0
+            ), "No model results found in the output file"
 
             # Check that each model result has a revenue field
             for model_result in model_results:

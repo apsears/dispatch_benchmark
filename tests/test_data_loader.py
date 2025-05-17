@@ -2,7 +2,7 @@
 Test the data loading functionality.
 """
 
-from virtual_energy.optimisers.benchmark import load_prices
+from dispatch_benchmark.optimisers.benchmark import load_prices
 
 
 def test_loader_roundtrip(ercot_1day_csv):

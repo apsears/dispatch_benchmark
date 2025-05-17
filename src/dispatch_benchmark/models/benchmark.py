@@ -16,27 +16,24 @@ import json
 import os
 import time
 import pandas as pd
-from pathlib import Path
-import pickle
-from datetime import datetime, timedelta
+from datetime import datetime
 from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
 
 # Import models
-from virtual_energy.models.model_config import BatteryConfig
-from virtual_energy.optimisers.oracle_lp import (
+from dispatch_benchmark.optimisers.oracle_lp import (
     create_and_solve_model as oracle_lp_solve,
 )
-from virtual_energy.optimisers.online_mpc import (
+from dispatch_benchmark.optimisers.online_mpc import (
     run_mpc as online_mpc_run,
     FORECASTERS as online_mpc_forecasters,
 )
-from virtual_energy.models.online_quartile import quartile_dispatch
-from virtual_energy.utils.ercot_utils import tidy
+from dispatch_benchmark.models.online_quartile import quartile_dispatch
+from dispatch_benchmark.utils.ercot_utils import tidy
 
 # Import the new configuration system
-from virtual_energy.config import (
+from dispatch_benchmark.config import (
     get_battery_config,
     get_optimisers,
     get_forecaster_config,
@@ -71,7 +68,9 @@ def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
     print(f"Loading prices from {prices_path}")
 
     # Detect if this is NYISO data from filename
-    is_nyiso = "nyiso" in prices_path.lower() and "realtime" in prices_path.lower()
+    is_nyiso = (
+        "nyiso" in prices_path.lower() and "realtime" in prices_path.lower()
+    )
 
     # Load data from CSV
     raw_df = pd.read_csv(prices_path)
@@ -119,7 +118,10 @@ def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
                 )
                 # Alternative approach: use pivot_table which handles duplicates by aggregation
                 df = raw_df.pivot_table(
-                    index="timestamp", columns="node", values="price", aggfunc="mean"
+                    index="timestamp",
+                    columns="node",
+                    values="price",
+                    aggfunc="mean",
                 ).reset_index()
                 print(
                     f"Used pivot_table to handle duplicates: {len(df)} rows and {len(df.columns)} columns"
@@ -141,21 +143,27 @@ def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
             )
 
             # Determine current frequency
-            from virtual_energy.io.nyiso import infer_frequency
+            from dispatch_benchmark.io.nyiso import infer_frequency
 
             original_freq = infer_frequency(raw_df)
             print(f"Original data frequency detected as: {original_freq}")
 
             if original_freq != data_frequency:
-                print(f"Resampling NYISO data from {original_freq} to {data_frequency}")
+                print(
+                    f"Resampling NYISO data from {original_freq} to {data_frequency}"
+                )
 
                 # Convert price column to numeric, forcing non-numeric values to NaN
-                raw_df["price"] = pd.to_numeric(raw_df["price"], errors="coerce")
+                raw_df["price"] = pd.to_numeric(
+                    raw_df["price"], errors="coerce"
+                )
 
                 # Drop any rows with NaN prices
                 if raw_df["price"].isna().any():
                     nan_count = raw_df["price"].isna().sum()
-                    print(f"Dropping {nan_count} rows with non-numeric price values")
+                    print(
+                        f"Dropping {nan_count} rows with non-numeric price values"
+                    )
                     raw_df = raw_df.dropna(subset=["price"])
 
                 # Resample within each zone
@@ -232,7 +240,10 @@ def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
                 )
                 # Alternative approach: use pivot_table which handles duplicates by aggregation
                 df = raw_df.pivot_table(
-                    index="timestamp", columns="zone", values="price", aggfunc="mean"
+                    index="timestamp",
+                    columns="zone",
+                    values="price",
+                    aggfunc="mean",
                 ).reset_index()
                 print(
                     f"Used pivot_table to handle duplicates: {len(df)} rows and {len(df.columns)} columns"
@@ -241,7 +252,9 @@ def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
                 raise
 
     # Check if it's in the legacy ERCOT wide format
-    elif "deliveryDate" in raw_df.columns and "settlementPoint" in raw_df.columns:
+    elif (
+        "deliveryDate" in raw_df.columns and "settlementPoint" in raw_df.columns
+    ):
         print("Converting from ERCOT legacy format to wide format...")
 
         # Create timestamp column from date, hour, and interval
@@ -264,7 +277,9 @@ def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
             raw_df = raw_df[raw_df["settlementPoint"].isin(settlement_points)]
 
         # Check for duplicates in the timestamp and settlementPoint combination
-        dup_count = raw_df.duplicated(subset=["timestamp", "settlementPoint"]).sum()
+        dup_count = raw_df.duplicated(
+            subset=["timestamp", "settlementPoint"]
+        ).sum()
         if dup_count > 0:
             print(
                 f"Found {dup_count} duplicate timestamp-settlementPoint combinations. Dropping duplicates..."
@@ -275,10 +290,14 @@ def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
 
         # Pivot to wide format
         df = raw_df.pivot(
-            index="timestamp", columns="settlementPoint", values="settlementPointPrice"
+            index="timestamp",
+            columns="settlementPoint",
+            values="settlementPointPrice",
         ).reset_index()
 
-        print(f"Created wide format with {len(df)} rows and {len(df.columns)} columns")
+        print(
+            f"Created wide format with {len(df)} rows and {len(df.columns)} columns"
+        )
     else:
         # Assuming it's already in wide format
         print("Assuming data is already in wide format")
@@ -341,7 +360,9 @@ def filter_date_range(df, start_date=None, end_date=None):
         end_date = pd.to_datetime(end_date)
 
     # Filter to the date range
-    filtered_df = df[(df["timestamp"] >= start_date) & (df["timestamp"] < end_date)]
+    filtered_df = df[
+        (df["timestamp"] >= start_date) & (df["timestamp"] < end_date)
+    ]
 
     print(f"Filtered date range: {start_date} to {end_date}")
     print(f"Date range contains {len(filtered_df)} records")
@@ -553,7 +574,9 @@ def process_node(node, df_all, start_date, end_date, output_dir):
 
         for pct in percentiles:
             try:
-                result = run_online_quartile(node_df, pct=pct, window=window_size)
+                result = run_online_quartile(
+                    node_df, pct=pct, window=window_size
+                )
                 print(
                     f"Online Quartile (p{pct}): ${result['revenue']:.2f} in {result['runtime_seconds']:.2f}s"
                 )
@@ -595,7 +618,9 @@ def run_benchmark(
     benchmark_config = get_benchmark_config()
 
     # Use config values if not provided
-    output_dir = output_dir or benchmark_config.get("output_dir", "benchmark_results")
+    output_dir = output_dir or benchmark_config.get(
+        "output_dir", "benchmark_results"
+    )
     n_jobs = n_jobs or benchmark_config.get("n_jobs", -1)
     max_nodes = max_nodes or benchmark_config.get("max_nodes", 100)
 
@@ -626,9 +651,11 @@ def run_benchmark(
 
     # Update the date range message to reflect the actual behavior
     if start_date is None and end_date is None:
-        print(f"Date range: full dataset (all available data)")
+        print("Date range: full dataset (all available data)")
     else:
-        print(f"Date range: {start_date or 'beginning'} to {end_date or 'end of data'}")
+        print(
+            f"Date range: {start_date or 'beginning'} to {end_date or 'end of data'}"
+        )
 
     # Process each node
     if n_jobs == 1:

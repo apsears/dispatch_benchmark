@@ -17,14 +17,16 @@ python online_river.py --prices ercot.csv --algo thompson --seed 42  # reproduci
 """
 
 from pathlib import Path
-import argparse, warnings
-import numpy as np, pandas as pd
+import argparse
+import warnings
+import numpy as np
+import pandas as pd
 from river import bandit, preprocessing
 from river import proba  # Import for ThompsonSampling distribution
 import random
 
 # Get battery parameters from config
-from virtual_energy.config import get_battery_config
+from dispatch_benchmark.config import get_battery_config
 
 battery_config = get_battery_config()
 P_MAX = battery_config.p_max_mw
@@ -45,7 +47,9 @@ def load_prices(csv: Path, node: str | None = None) -> pd.Series:
     if node:
         df["SettlementPointPrice"] = df[node]
     return (
-        df.set_index("timestamp")["SettlementPointPrice"].sort_index().asfreq("15min")
+        df.set_index("timestamp")["SettlementPointPrice"]
+        .sort_index()
+        .asfreq("15min")
     )
 
 
@@ -182,7 +186,9 @@ def run_river_dispatch(
 
         # ----- update learner -----
         try:
-            learner.update(arm, reward)  # standard update format for River 0.22.0
+            learner.update(
+                arm, reward
+            )  # standard update format for River 0.22.0
         except TypeError:
             try:
                 # Try the contextual update format
@@ -234,7 +240,9 @@ if __name__ == "__main__":
         f"{price_series.index.min()} → {price_series.index.max()}"
     )
 
-    df = run_river_dispatch(price_series, args.algo, args.alpha, args.eps, args.seed)
+    df = run_river_dispatch(
+        price_series, args.algo, args.alpha, args.eps, args.seed
+    )
     rev = df["Revenue$"].sum()
     print(f"{args.algo} revenue = ${rev:,.0f}")
 

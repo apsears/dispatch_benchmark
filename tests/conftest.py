@@ -7,21 +7,22 @@ import os
 import pytest
 import pandas as pd
 import numpy as np
-from pathlib import Path
-
-from virtual_energy.models.config import BatteryConfig
 
 
 @pytest.fixture
 def ercot_1day_csv():
     """Fixture that returns the path to the ERCOT 1-day sample dataset."""
-    return os.path.join(os.path.dirname(__file__), "data", "ercot_1day_sample.csv")
+    return os.path.join(
+        os.path.dirname(__file__), "data", "ercot_1day_sample.csv"
+    )
 
 
 @pytest.fixture
 def nyiso_1day_csv():
     """Fixture that returns the path to the NYISO 1-day sample dataset."""
-    return os.path.join(os.path.dirname(__file__), "data", "nyiso_1day_sample.csv")
+    return os.path.join(
+        os.path.dirname(__file__), "data", "nyiso_1day_sample.csv"
+    )
 
 
 @pytest.fixture
@@ -42,9 +43,15 @@ def random_prices():
     # Generate 96 price points (24 hours x 4 intervals)
     np.random.seed(42)  # For reproducibility
     timestamps = pd.date_range(start="2024-01-01", periods=96, freq="15min")
-    prices = 20 + 10 * np.sin(np.pi * np.arange(96) / 48) + np.random.normal(0, 3, 96)
+    prices = (
+        20
+        + 10 * np.sin(np.pi * np.arange(96) / 48)
+        + np.random.normal(0, 3, 96)
+    )
 
-    return pd.DataFrame({"timestamp": timestamps, "SettlementPointPrice": prices})
+    return pd.DataFrame(
+        {"timestamp": timestamps, "SettlementPointPrice": prices}
+    )
 
 
 @pytest.fixture
@@ -56,15 +63,19 @@ def three_day_prices():
 
     # Create a daily pattern with some random noise
     hour_of_day = timestamps.hour + timestamps.minute / 60
-    prices = 20 + 10 * np.sin(np.pi * hour_of_day / 12) + np.random.normal(0, 3, 288)
+    prices = (
+        20 + 10 * np.sin(np.pi * hour_of_day / 12) + np.random.normal(0, 3, 288)
+    )
 
-    return pd.DataFrame({"timestamp": timestamps, "SettlementPointPrice": prices})
+    return pd.DataFrame(
+        {"timestamp": timestamps, "SettlementPointPrice": prices}
+    )
 
 
 @pytest.fixture
 def battery_config():
     """Fixture that returns a standard battery configuration."""
     # Import here to avoid circular imports
-    from virtual_energy.config import get_battery_config
+    from dispatch_benchmark.config import get_battery_config
 
     return get_battery_config()

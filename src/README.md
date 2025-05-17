@@ -4,7 +4,7 @@ This directory contains the source code for the Virtual Energy package. The pack
 
 ## Package Structure
 
-- `virtual_energy/` - Main package directory
+- `dispatch_benchmark/` - Main package directory
   - `__init__.py` - Package initialization
   - `data_processing/` - Modules for retrieving and processing energy market data
     - `ercot.py` - ERCOT market data processing

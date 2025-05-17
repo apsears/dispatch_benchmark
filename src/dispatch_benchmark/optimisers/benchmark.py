@@ -23,17 +23,17 @@ import multiprocessing as mp
 from functools import partial
 
 # Import models from the new package structure
-from virtual_energy.optimisers.battery_config import BatteryConfig
-from virtual_energy.optimisers.oracle_lp import (
+from dispatch_benchmark.optimisers.battery_config import BatteryConfig
+from dispatch_benchmark.optimisers.oracle_lp import (
     create_and_solve_model as oracle_lp_solve,
     tidy,
 )
-from virtual_energy.optimisers.online_mpc import (
+from dispatch_benchmark.optimisers.online_mpc import (
     run_mpc as online_mpc_run,
     FORECASTERS as online_mpc_forecasters,
 )
-from virtual_energy.forecasters.quartile import quartile_dispatch
-from virtual_energy.config import get_battery_config
+from dispatch_benchmark.forecasters.quartile import quartile_dispatch
+from dispatch_benchmark.config import get_battery_config
 
 # Global battery config for multiprocessing - initialize with values from config
 battery_config = get_battery_config()
@@ -76,7 +76,9 @@ def load_prices(prices_path, node=None, max_nodes=100):
             raw_df = raw_df[raw_df["settlementPoint"].isin(settlement_points)]
 
         # Check for duplicates in the timestamp and settlementPoint combination
-        dup_count = raw_df.duplicated(subset=["timestamp", "settlementPoint"]).sum()
+        dup_count = raw_df.duplicated(
+            subset=["timestamp", "settlementPoint"]
+        ).sum()
         if dup_count > 0:
             print(
                 f"Found {dup_count} duplicate timestamp-settlementPoint combinations. Dropping duplicates..."
@@ -92,7 +94,9 @@ def load_prices(prices_path, node=None, max_nodes=100):
             values="settlementPointPrice",
         ).reset_index()
 
-        print(f"Created wide format with {len(df)} rows and {len(df.columns)} columns")
+        print(
+            f"Created wide format with {len(df)} rows and {len(df.columns)} columns"
+        )
     else:
         # Already in wide format
         df = raw_df
@@ -123,7 +127,8 @@ def filter_week(df, start_date=None):
 
     # Filter to the week
     return df[
-        (df["timestamp"].dt.date >= start_date) & (df["timestamp"].dt.date < end_date)
+        (df["timestamp"].dt.date >= start_date)
+        & (df["timestamp"].dt.date < end_date)
     ]
 
 
@@ -372,9 +377,13 @@ def run_benchmark(
                 f"Converted ERCOT tidy to wide format with {len(all_prices)} rows and {len(all_prices.columns)} columns"
             )
 
-        elif all(col in raw_df.columns for col in ["zone", "timestamp", "price"]):
+        elif all(
+            col in raw_df.columns for col in ["zone", "timestamp", "price"]
+        ):
             # NYISO format (zone, timestamp, price)
-            print("Detected NYISO tidy format with zone, timestamp, price columns")
+            print(
+                "Detected NYISO tidy format with zone, timestamp, price columns"
+            )
 
             # Ensure timestamp is datetime
             if not pd.api.types.is_datetime64_dtype(raw_df["timestamp"]):
@@ -429,7 +438,9 @@ def run_benchmark(
                 "deliveryInterval",
             ]
             if not all(col in raw_df.columns for col in required_columns):
-                raise ValueError(f"Tidy format requires columns: {required_columns}")
+                raise ValueError(
+                    f"Tidy format requires columns: {required_columns}"
+                )
 
             # Create timestamp column from date, hour, and interval
             raw_df["timestamp"] = pd.to_datetime(
@@ -437,7 +448,9 @@ def run_benchmark(
                 + " "
                 + (raw_df["deliveryHour"] - 1).astype(str)
                 + ":"
-                + ((raw_df["deliveryInterval"] - 1) * 15).astype(str).str.zfill(2)
+                + ((raw_df["deliveryInterval"] - 1) * 15)
+                .astype(str)
+                .str.zfill(2)
             )
 
             # Filter to max_nodes if specified
@@ -446,10 +459,14 @@ def run_benchmark(
             if len(settlement_points) > max_nodes:
                 settlement_points = settlement_points[:max_nodes]
                 print(f"Filtering to first {max_nodes} settlement points")
-                raw_df = raw_df[raw_df["settlementPoint"].isin(settlement_points)]
+                raw_df = raw_df[
+                    raw_df["settlementPoint"].isin(settlement_points)
+                ]
 
             # Drop duplicates if necessary
-            dup_count = raw_df.duplicated(subset=["timestamp", "settlementPoint"]).sum()
+            dup_count = raw_df.duplicated(
+                subset=["timestamp", "settlementPoint"]
+            ).sum()
             if dup_count > 0:
                 print(
                     f"Found {dup_count} duplicate timestamp-settlementPoint combinations. Dropping duplicates..."
@@ -522,7 +539,9 @@ def run_benchmark(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Benchmark battery dispatch models")
+    parser = argparse.ArgumentParser(
+        description="Benchmark battery dispatch models"
+    )
     parser.add_argument(
         "--prices",
         default="concatenated_all_data.csv",

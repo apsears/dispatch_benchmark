@@ -5,7 +5,6 @@ Basic tests for the CLI functionality.
 import subprocess
 import os
 import sys
-import pytest
 from pathlib import Path
 
 
@@ -14,7 +13,7 @@ def test_cli_help():
     cmd = [
         sys.executable,  # Use the same Python interpreter as the test
         "-m",
-        "virtual_energy.cli.ercot_cli",
+        "dispatch_benchmark.cli.ercot_cli",
     ]
 
     # Set up environment with correct PYTHONPATH

@@ -26,9 +26,7 @@ import argparse
 import warnings
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from tqdm.auto import tqdm
 
 import pulp
 from pulp import (
@@ -37,12 +35,11 @@ from pulp import (
     LpVariable,
     lpSum,
     LpStatus,
-    value,
     LpContinuous,
 )
 
 # Import battery config from the new package structure
-from virtual_energy.optimisers.battery_config import BatteryConfig
+from dispatch_benchmark.optimisers.battery_config import BatteryConfig
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -50,28 +47,30 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # Helper functions
 # ----------------------------------------------------------------------
 
+
 def tidy(df, node):
     """
     Create a tidy dataframe for a specific node.
-    
+
     Args:
         df: Wide-format dataframe with 'timestamp' column and price columns
         node: Name of the node to extract
-    
+
     Returns:
         DataFrame with 'timestamp' and 'SettlementPointPrice' columns
     """
     if node not in df.columns:
         raise ValueError(f"Node '{node}' not found in dataframe columns")
-    
-    tidy_df = df[['timestamp', node]].copy()
-    tidy_df['SettlementPointPrice'] = tidy_df[node]
-    
+
+    tidy_df = df[["timestamp", node]].copy()
+    tidy_df["SettlementPointPrice"] = tidy_df[node]
+
     # Convert timestamp to datetime if it's not already
-    if not pd.api.types.is_datetime64_dtype(tidy_df['timestamp']):
-        tidy_df['timestamp'] = pd.to_datetime(tidy_df['timestamp'])
-    
+    if not pd.api.types.is_datetime64_dtype(tidy_df["timestamp"]):
+        tidy_df["timestamp"] = pd.to_datetime(tidy_df["timestamp"])
+
     return tidy_df
+
 
 def create_and_solve_model(
     prices: pd.DataFrame, cfg: BatteryConfig
@@ -86,19 +85,24 @@ def create_and_solve_model(
     # Create the optimization problem
     prob = LpProblem("Oracle_Dispatch", LpMaximize)
 
-    p_pos = LpVariable.dicts("discharge_MW", range(T), 0, P_MAX_MW, LpContinuous)
+    p_pos = LpVariable.dicts(
+        "discharge_MW", range(T), 0, P_MAX_MW, LpContinuous
+    )
     p_neg = LpVariable.dicts("charge_MW", range(T), 0, P_MAX_MW, LpContinuous)
     soc = LpVariable.dicts("soc_MWh", range(T), 0, E_MAX_MWh, LpContinuous)
 
     # Objective: maximise revenue (price × net-power × hours)
     prob += lpSum(
-        prices.SettlementPointPrice[t] * (p_pos[t] - p_neg[t]) * Δt for t in range(T)
+        prices.SettlementPointPrice[t] * (p_pos[t] - p_neg[t]) * Δt
+        for t in range(T)
     )
 
     # State-of-charge recursion
     for t in range(T):
         if t == 0:
-            prob += soc[t] == E_MAX_MWh * 0.5 + (eta_chg * p_neg[t] - p_pos[t]) * Δt
+            prob += (
+                soc[t] == E_MAX_MWh * 0.5 + (eta_chg * p_neg[t] - p_pos[t]) * Δt
+            )
         else:
             prob += soc[t] == soc[t - 1] + (eta_chg * p_neg[t] - p_pos[t]) * Δt
 
@@ -119,7 +123,9 @@ def create_and_solve_model(
     dispatch["MWhDeployed"] = [
         (p_pos[t].value() - p_neg[t].value()) * Δt for t in range(T)
     ]
-    dispatch["Revenue$"] = dispatch["MWhDeployed"] * dispatch["SettlementPointPrice"]
+    dispatch["Revenue$"] = (
+        dispatch["MWhDeployed"] * dispatch["SettlementPointPrice"]
+    )
 
     return prob, dispatch
 
@@ -158,7 +164,10 @@ def main():
         "--capacity", type=float, default=200, help="Battery capacity in MWh"
     )
     parser.add_argument(
-        "--power", type=float, default=25, help="Max charge/discharge power in MW"
+        "--power",
+        type=float,
+        default=25,
+        help="Max charge/discharge power in MW",
     )
     parser.add_argument(
         "--efficiency",
@@ -195,7 +204,9 @@ def main():
             print("Attempting to load with timestamp as index...")
             raw = pd.read_csv(args.prices, index_col=0, parse_dates=True)
             if not isinstance(raw.index, pd.DatetimeIndex):
-                print("Warning: First column might not be a valid timestamp index")
+                print(
+                    "Warning: First column might not be a valid timestamp index"
+                )
     else:
         raise ValueError(f"Unsupported file format: {args.prices}")
 

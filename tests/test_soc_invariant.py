@@ -2,10 +2,7 @@
 Smoke test for oracle_lp to ensure state of charge remains within specified bounds.
 """
 
-import pytest
-import pandas as pd
-import numpy as np
-from virtual_energy.optimisers.oracle_lp import create_and_solve_model
+from dispatch_benchmark.optimisers.oracle_lp import create_and_solve_model
 
 
 def test_soc_invariant(random_prices, battery_config):

@@ -26,9 +26,7 @@ import argparse
 import warnings
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from tqdm.auto import tqdm
 
 import pulp
 from pulp import (
@@ -37,7 +35,6 @@ from pulp import (
     LpVariable,
     lpSum,
     LpStatus,
-    value,
     LpContinuous,
 )
 
@@ -65,19 +62,24 @@ def create_and_solve_model(
     # Create the optimization problem
     prob = LpProblem("Oracle_Dispatch", LpMaximize)
 
-    p_pos = LpVariable.dicts("discharge_MW", range(T), 0, P_MAX_MW, LpContinuous)
+    p_pos = LpVariable.dicts(
+        "discharge_MW", range(T), 0, P_MAX_MW, LpContinuous
+    )
     p_neg = LpVariable.dicts("charge_MW", range(T), 0, P_MAX_MW, LpContinuous)
     soc = LpVariable.dicts("soc_MWh", range(T), 0, E_MAX_MWh, LpContinuous)
 
     # Objective: maximise revenue (price × net-power × hours)
     prob += lpSum(
-        prices.SettlementPointPrice[t] * (p_pos[t] - p_neg[t]) * Δt for t in range(T)
+        prices.SettlementPointPrice[t] * (p_pos[t] - p_neg[t]) * Δt
+        for t in range(T)
     )
 
     # State-of-charge recursion
     for t in range(T):
         if t == 0:
-            prob += soc[t] == E_MAX_MWh * 0.5 + (eta_chg * p_neg[t] - p_pos[t]) * Δt
+            prob += (
+                soc[t] == E_MAX_MWh * 0.5 + (eta_chg * p_neg[t] - p_pos[t]) * Δt
+            )
         else:
             prob += soc[t] == soc[t - 1] + (eta_chg * p_neg[t] - p_pos[t]) * Δt
 
@@ -98,7 +100,9 @@ def create_and_solve_model(
     dispatch["MWhDeployed"] = [
         (p_pos[t].value() - p_neg[t].value()) * Δt for t in range(T)
     ]
-    dispatch["Revenue$"] = dispatch["MWhDeployed"] * dispatch["SettlementPointPrice"]
+    dispatch["Revenue$"] = (
+        dispatch["MWhDeployed"] * dispatch["SettlementPointPrice"]
+    )
 
     return prob, dispatch
 
@@ -137,7 +141,10 @@ def main():
         "--capacity", type=float, default=None, help="Battery capacity in MWh"
     )
     parser.add_argument(
-        "--power", type=float, default=None, help="Max charge/discharge power in MW"
+        "--power",
+        type=float,
+        default=None,
+        help="Max charge/discharge power in MW",
     )
     parser.add_argument(
         "--efficiency",
@@ -159,15 +166,19 @@ def main():
         return
 
     # Get battery config, use command line args to override if provided
-    from virtual_energy.config import get_battery_config
+    from dispatch_benchmark.config import get_battery_config
 
     battery_config = get_battery_config()
 
     # Use args to override battery config if provided
-    capacity = args.capacity if args.capacity is not None else battery_config.e_max_mwh
+    capacity = (
+        args.capacity if args.capacity is not None else battery_config.e_max_mwh
+    )
     power = args.power if args.power is not None else battery_config.p_max_mw
     efficiency = (
-        args.efficiency if args.efficiency is not None else battery_config.eta_chg
+        args.efficiency
+        if args.efficiency is not None
+        else battery_config.eta_chg
     )
     delta_t = battery_config.delta_t  # Always use config value for delta_t
 
@@ -193,7 +204,9 @@ def main():
             print("Attempting to load with timestamp as index...")
             raw = pd.read_csv(args.prices, index_col=0, parse_dates=True)
             if not isinstance(raw.index, pd.DatetimeIndex):
-                print("Warning: First column might not be a valid timestamp index")
+                print(
+                    "Warning: First column might not be a valid timestamp index"
+                )
     else:
         raise ValueError(f"Unsupported file format: {args.prices}")
 

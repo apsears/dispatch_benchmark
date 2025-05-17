@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
 Download and process NYISO LBMP (Location-Based Marginal Price) data.
-This script uses functionality from the virtual_energy.io.nyiso module.
+This script uses functionality from the dispatch_benchmark.io.nyiso module.
 """
 
 import argparse
 import datetime
-import os
-from pathlib import Path
 
 # Try to load dotenv for environment variables
 from dotenv import load_dotenv
@@ -15,13 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import nyiso module functionality
-from src.virtual_energy.io.nyiso import (
-    get_months_for_year,
-    download_file,
-    generate_monthly_urls,
-    unzip_file,
-    process_csv_file,
-    combine_processed_data,
+from src.dispatch_benchmark.io.nyiso import (
     main as nyiso_main,
 )
 

@@ -22,12 +22,10 @@ python mpc_dispatch.py --prices data/prices_wide.csv --node ALP_BESS_RN
 import argparse
 from pathlib import Path
 import warnings
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
-from pydantic import BaseModel, Field, validator
 
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
@@ -35,8 +33,9 @@ from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
 import pulp
 from pulp import LpProblem, LpMaximize, LpVariable, lpSum, LpContinuous
 
-# Import battery config from the new package structure
-from virtual_energy.optimisers.battery_config import BatteryConfig
+# Import utility functions
+from ercot_utils import tidy
+from model_config import BatteryConfig
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -44,28 +43,6 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # Helper functions
 # ----------------------------------------------------------------------
 
-def tidy(df, node):
-    """
-    Create a tidy dataframe for a specific node.
-    
-    Args:
-        df: Wide-format dataframe with 'timestamp' column and price columns
-        node: Name of the node to extract
-    
-    Returns:
-        DataFrame with 'timestamp' and 'SettlementPointPrice' columns
-    """
-    if node not in df.columns:
-        raise ValueError(f"Node '{node}' not found in dataframe columns")
-    
-    tidy_df = df[['timestamp', node]].copy()
-    tidy_df['SettlementPointPrice'] = tidy_df[node]
-    
-    # Convert timestamp to datetime if it's not already
-    if not pd.api.types.is_datetime64_dtype(tidy_df['timestamp']):
-        tidy_df['timestamp'] = pd.to_datetime(tidy_df['timestamp'])
-    
-    return tidy_df
 
 def make_features(prices: pd.Series, max_lag: int = 4) -> pd.DataFrame:
     """Lagged prices + calendar dummies."""
@@ -96,12 +73,16 @@ def train_forecaster(price_series: pd.Series, max_lag: int = 4) -> Ridge:
     assert len(X) == len(y), "X/y length mismatch after alignment"
 
     tscv = TimeSeriesSplit(n_splits=5)
-    ridge_grid = GridSearchCV(Ridge(), {"alpha": np.logspace(-2, 3, 10)}, cv=tscv)
+    ridge_grid = GridSearchCV(
+        Ridge(), {"alpha": np.logspace(-2, 3, 10)}, cv=tscv
+    )
     ridge_grid.fit(X, y)
     return ridge_grid.best_estimator_
 
 
-def forecast_one_step(model: Ridge, hist_series: pd.Series, max_lag: int = 4) -> float:
+def forecast_one_step(
+    model: Ridge, hist_series: pd.Series, max_lag: int = 4
+) -> float:
     """Forecast price for *next* interval (k+1)."""
     # Clean up input data
     hist_series = hist_series.dropna().sort_index()
@@ -164,7 +145,9 @@ def solve_lp_horizon(
 # ----------------------------------------------------------------------
 
 
-def run_mpc(price_df: pd.DataFrame, cfg: BatteryConfig, model: Ridge, node: str):
+def run_mpc(
+    price_df: pd.DataFrame, cfg: BatteryConfig, model: Ridge, node: str
+):
     Δt = cfg.delta_t
     soc = cfg.e_max_mwh * 0.5
     discharged_today = 0.0
@@ -184,12 +167,18 @@ def run_mpc(price_df: pd.DataFrame, cfg: BatteryConfig, model: Ridge, node: str)
     rec = []
     hist_series = pd.Series(dtype=float)
 
-    for ts, row in tqdm(price_df.iterrows(), total=len(price_df), desc="MPC loop"):
+    for ts, row in tqdm(
+        price_df.iterrows(), total=len(price_df), desc="MPC loop"
+    ):
         try:
             true_price = row[price_column]
             # rolling history series
-            hist_series = pd.concat([hist_series, pd.Series([true_price], index=[ts])])
-            hist_series = hist_series.loc[~hist_series.index.duplicated(keep="last")]
+            hist_series = pd.concat(
+                [hist_series, pd.Series([true_price], index=[ts])]
+            )
+            hist_series = hist_series.loc[
+                ~hist_series.index.duplicated(keep="last")
+            ]
 
             if ts.date() != last_date:
                 discharged_today = 0.0
@@ -197,7 +186,9 @@ def run_mpc(price_df: pd.DataFrame, cfg: BatteryConfig, model: Ridge, node: str)
 
             # build remainder‑of‑day horizon
             same_day_mask = price_df.index.date == ts.date()
-            cumsum_series = pd.Series(same_day_mask.cumsum(), index=price_df.index)
+            cumsum_series = pd.Series(
+                same_day_mask.cumsum(), index=price_df.index
+            )
             horizon_len = (
                 same_day_mask.sum() - cumsum_series.loc[ts] + 1
             )  # +1 to include current interval
@@ -212,7 +203,10 @@ def run_mpc(price_df: pd.DataFrame, cfg: BatteryConfig, model: Ridge, node: str)
                     [
                         fc_hist,
                         pd.Series(
-                            [fc], index=[fc_hist.index[-1] + pd.Timedelta(minutes=15)]
+                            [fc],
+                            index=[
+                                fc_hist.index[-1] + pd.Timedelta(minutes=15)
+                            ],
                         ),
                     ]
                 )
@@ -250,33 +244,67 @@ def run_mpc(price_df: pd.DataFrame, cfg: BatteryConfig, model: Ridge, node: str)
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--prices", default="data/prices_wide.csv")
-    ap.add_argument("--node", default="ALP_BESS_RN")
-    ap.add_argument(
-        "--capacity", type=float, default=200, help="Battery capacity in MWh"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--prices", default="data/prices_wide.csv")
+    parser.add_argument("--node", default="ALP_BESS_RN")
+    parser.add_argument(
+        "--capacity", type=float, default=None, help="Battery capacity in MWh"
     )
-    ap.add_argument(
-        "--power", type=float, default=25, help="Max charge/discharge power in MW"
+    parser.add_argument(
+        "--power",
+        type=float,
+        default=None,
+        help="Max charge/discharge power in MW",
     )
-    ap.add_argument(
+    parser.add_argument(
         "--efficiency",
         type=float,
-        default=0.95,
+        default=None,
         help="Battery charging efficiency (0-1)",
     )
-    ap.add_argument(
+    parser.add_argument(
+        "--initial_soc",
+        type=float,
+        default=None,
+        help="Initial state of charge as fraction (0-1)",
+    )
+    parser.add_argument(
         "--list-nodes",
         action="store_true",
         help="List all available nodes in the price data and exit",
     )
-    args = ap.parse_args()
+    args = parser.parse_args()
+
+    # Get battery config, use command line args to override if provided
+    from dispatch_benchmark.config import get_battery_config
+
+    battery_config = get_battery_config()
+
+    # Use args to override battery config if provided
+    capacity = (
+        args.capacity if args.capacity is not None else battery_config.e_max_mwh
+    )
+    power = args.power if args.power is not None else battery_config.p_max_mw
+    efficiency = (
+        args.efficiency
+        if args.efficiency is not None
+        else battery_config.eta_chg
+    )
+    delta_t = battery_config.delta_t  # Always use config value for delta_t
+
+    # Initial SoC (default to 50% if not in args or invalid)
+    initial_soc_frac = (
+        args.initial_soc
+        if args.initial_soc is not None
+        else battery_config.initial_soc_frac
+    )
+    initial_soc = initial_soc_frac * capacity
 
     cfg = BatteryConfig(
-        delta_t=0.25,
-        eta_chg=args.efficiency,
-        p_max_mw=args.power,
-        e_max_mwh=args.capacity,
+        delta_t=delta_t,
+        eta_chg=efficiency,
+        p_max_mw=power,
+        e_max_mwh=capacity,
     )
 
     print("Loading price data…")
@@ -296,7 +324,9 @@ def main():
         return
 
     print("Training forecaster…")
-    forecaster = train_forecaster(prices.set_index("timestamp")["SettlementPointPrice"])
+    forecaster = train_forecaster(
+        prices.set_index("timestamp")["SettlementPointPrice"]
+    )
 
     print("Running MPC…")
     dispatch = run_mpc(prices, cfg, forecaster, args.node)

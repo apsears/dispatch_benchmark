@@ -5,23 +5,22 @@ Test script to verify that imports from the new package structure work correctly
 
 import pytest
 import importlib
-import os
 import sys
 
 # List of modules to test
 MODULES_TO_TEST = [
     # IO modules
-    "virtual_energy.io.ercot",
-    "virtual_energy.io.nyiso",
+    "dispatch_benchmark.io.ercot",
+    "dispatch_benchmark.io.nyiso",
     # Forecasters
-    "virtual_energy.forecasters.ridge",
-    "virtual_energy.forecasters.quartile",
+    "dispatch_benchmark.forecasters.ridge",
+    "dispatch_benchmark.forecasters.quartile",
     # Optimisers
-    "virtual_energy.optimisers.battery_config",
-    "virtual_energy.optimisers.oracle_lp",
-    "virtual_energy.optimisers.online_mpc",
+    "dispatch_benchmark.optimisers.battery_config",
+    "dispatch_benchmark.optimisers.oracle_lp",
+    "dispatch_benchmark.optimisers.online_mpc",
     # Utils
-    "virtual_energy.utils.time_series",
+    "dispatch_benchmark.utils.time_series",
 ]
 
 
@@ -39,7 +38,8 @@ def test_import():
     # If any modules failed to import, report them and fail the test
     if failed_modules:
         pytest.fail(
-            f"Failed to import the following modules:\n" + "\n".join(failed_modules)
+            "Failed to import the following modules:\n"
+            + "\n".join(failed_modules)
         )
 
 

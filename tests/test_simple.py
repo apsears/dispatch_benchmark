@@ -2,16 +2,19 @@
 A simple test to verify that our package is installed correctly.
 """
 
+
 def test_imports():
     """Test that we can import our package."""
     try:
-        import virtual_energy
+        import dispatch_benchmark
+
         assert True
     except ImportError:
-        assert False, "Failed to import virtual_energy package"
-        
+        assert False, "Failed to import dispatch_benchmark package"
+
     try:
-        from virtual_energy.utils import time_series_split
+        from dispatch_benchmark.utils import time_series_split
+
         assert True
     except ImportError:
-        assert False, "Failed to import time_series_split" 
+        assert False, "Failed to import time_series_split"

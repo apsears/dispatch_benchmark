@@ -4,12 +4,11 @@ Configuration module for virtual-energy package.
 This module loads configuration from pyproject.toml and provides it to the rest of the application.
 """
 
-import os
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 import warnings
 
-from virtual_energy.models.config import BatteryConfig
+from dispatch_benchmark.models.config import BatteryConfig
 
 # Try to import tomllib (Python 3.11+) or tomli as a fallback
 try:
@@ -91,7 +90,8 @@ def load_config() -> Dict[str, Any]:
     # Check if tomllib/tomli is available
     if tomllib is None:
         warnings.warn(
-            "No TOML parser available. Using default configuration.", UserWarning
+            "No TOML parser available. Using default configuration.",
+            UserWarning,
         )
         return config
 
@@ -99,7 +99,8 @@ def load_config() -> Dict[str, Any]:
     pyproject_path = find_pyproject_toml()
     if pyproject_path is None:
         warnings.warn(
-            "Could not find pyproject.toml. Using default configuration.", UserWarning
+            "Could not find pyproject.toml. Using default configuration.",
+            UserWarning,
         )
         return config
 
@@ -108,7 +109,10 @@ def load_config() -> Dict[str, Any]:
             pyproject_data = tomllib.load(f)
 
         # Extract the virtual-energy configuration
-        if "tool" in pyproject_data and "virtual-energy" in pyproject_data["tool"]:
+        if (
+            "tool" in pyproject_data
+            and "virtual-energy" in pyproject_data["tool"]
+        ):
             ve_config = pyproject_data["tool"]["virtual-energy"]
 
             # Update the config with values from pyproject.toml

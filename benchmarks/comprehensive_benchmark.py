@@ -11,10 +11,9 @@ import os
 import argparse
 import pandas as pd
 from pathlib import Path
-import traceback
 
 # Import the benchmark function from the models module
-from virtual_energy.models.benchmark import run_benchmark
+from dispatch_benchmark.models.benchmark import run_benchmark
 
 
 def main():
@@ -97,12 +96,16 @@ def main():
     # Add a note about the naive forecaster
     print("\nThis benchmark includes the naive forecaster as a baseline.")
     print("The naive forecaster predicts future prices = last observed price.")
-    print("It provides a reference point for evaluating more sophisticated models.")
+    print(
+        "It provides a reference point for evaluating more sophisticated models."
+    )
 
     # Verify that the price file exists
     if not Path(args.prices_path).exists():
         print(f"Error: Price data file not found: {args.prices_path}")
-        print("Please download or specify the correct path to ERCOT price data.")
+        print(
+            "Please download or specify the correct path to ERCOT price data."
+        )
         sys.exit(1)
 
     # Run the benchmark with the parsed arguments
@@ -140,7 +143,11 @@ def main():
                 ridge_row = group[group["model"] == "online_mpc_ridge"]
                 oracle_row = group[group["model"] == "oracle_lp"]
 
-                if not naive_row.empty and not ridge_row.empty and not oracle_row.empty:
+                if (
+                    not naive_row.empty
+                    and not ridge_row.empty
+                    and not oracle_row.empty
+                ):
                     naive_revenue = naive_row["revenue"].iloc[0]
                     ridge_revenue = ridge_row["revenue"].iloc[0]
                     oracle_revenue = oracle_row["revenue"].iloc[0]
@@ -188,7 +195,9 @@ def main():
                 )
 
                 # Save the metrics to a CSV file
-                metrics_file = Path(args.output_dir) / "naive_comparison_metrics.csv"
+                metrics_file = (
+                    Path(args.output_dir) / "naive_comparison_metrics.csv"
+                )
                 metrics_df.to_csv(metrics_file, index=False)
                 print(f"\nDetailed metrics saved to: {metrics_file}")
     except Exception as e:

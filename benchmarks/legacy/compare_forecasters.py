@@ -9,18 +9,17 @@ and outputs a comparison table to demonstrate the value of more sophisticated mo
 import sys
 import pandas as pd
 import time
-from pathlib import Path
 
 # Import our models and forecasters
-from virtual_energy.optimisers.battery_config import BatteryConfig
-from virtual_energy.optimisers.oracle_lp import (
+from dispatch_benchmark.optimisers.battery_config import BatteryConfig
+from dispatch_benchmark.optimisers.oracle_lp import (
     create_and_solve_model as oracle_lp_solve,
 )
-from virtual_energy.optimisers.online_mpc import (
+from dispatch_benchmark.optimisers.online_mpc import (
     run_mpc as online_mpc_run,
     FORECASTERS,
 )
-from virtual_energy.config import get_battery_config
+from dispatch_benchmark.config import get_battery_config
 
 # Get battery config from configuration
 battery_config = get_battery_config()
@@ -51,7 +50,9 @@ def load_price_data(path, node="HB_HOUSTON"):
             + " "
             + (node_data["deliveryHour"] - 1).astype(str).str.zfill(2)
             + ":"
-            + ((node_data["deliveryInterval"] - 1) * 15).astype(str).str.zfill(2)
+            + ((node_data["deliveryInterval"] - 1) * 15)
+            .astype(str)
+            .str.zfill(2)
         )
 
         # Create a DataFrame with timestamp and SettlementPointPrice
@@ -81,7 +82,9 @@ def load_price_data(path, node="HB_HOUSTON"):
                 + " "
                 + (raw_df["deliveryHour"] - 1).astype(str).str.zfill(2)
                 + ":"
-                + ((raw_df["deliveryInterval"] - 1) * 15).astype(str).str.zfill(2)
+                + ((raw_df["deliveryInterval"] - 1) * 15)
+                .astype(str)
+                .str.zfill(2)
             )
             prices_df = pd.DataFrame(
                 {
@@ -108,7 +111,9 @@ def run_model(prices_df, model_type, forecaster=None):
             raise ValueError(f"Unknown forecaster: {forecaster}")
         # Convert to series format needed by online_mpc
         price_series = prices_df.set_index("timestamp")["SettlementPointPrice"]
-        dispatch = online_mpc_run(price_series, 32, forecaster=FORECASTERS[forecaster])
+        dispatch = online_mpc_run(
+            price_series, 32, forecaster=FORECASTERS[forecaster]
+        )
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
@@ -152,7 +157,9 @@ def main():
     try:
         # Convert to series format needed by forecasters
         price_series = prices_df.set_index("timestamp")["SettlementPointPrice"]
-        naive_forecast = FORECASTERS["naive"](price_series, price_series.index[0], 32)
+        naive_forecast = FORECASTERS["naive"](
+            price_series, price_series.index[0], 32
+        )
         print(f"Naive forecast for first 3 periods: {naive_forecast[:3]}")
     except Exception as e:
         print(f"Error testing naive forecaster: {e}")
@@ -182,7 +189,9 @@ def main():
             print(f"\nRunning Online MPC with {forecaster} forecaster...")
             mpc_result = run_model(prices_df, "online_mpc", forecaster)
             results.append(mpc_result)
-            print(f"MPC with {forecaster} revenue: ${mpc_result['revenue']:,.2f}")
+            print(
+                f"MPC with {forecaster} revenue: ${mpc_result['revenue']:,.2f}"
+            )
         except Exception as e:
             print(f"Error running MPC with {forecaster}: {e}")
             import traceback
@@ -200,7 +209,9 @@ def main():
 
         # Print results table
         print("\n=== FORECASTER COMPARISON ===")
-        comparison = results_df[["model", "revenue_k", "runtime_seconds"]].copy()
+        comparison = results_df[
+            ["model", "revenue_k", "runtime_seconds"]
+        ].copy()
         comparison = comparison.rename(
             columns={
                 "model": "Model",

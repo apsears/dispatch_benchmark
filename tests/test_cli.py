@@ -14,7 +14,7 @@ def test_cli_single_node(ercot_1day_csv, tmp_path):
     cmd = [
         sys.executable,  # Use the same Python interpreter as the test
         "-m",
-        "virtual_energy.cli.ercot_cli",
+        "dispatch_benchmark.cli.ercot_cli",
         "backtest",
         "--nodes",
         "HB_HOUSTON",

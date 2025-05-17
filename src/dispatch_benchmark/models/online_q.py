@@ -17,17 +17,18 @@ makes results repeatable.
 """
 
 from __future__ import annotations
-import argparse, warnings, time
+import argparse
+import warnings
 from pathlib import Path
-import numpy as np, pandas as pd
-from tqdm import tqdm
+import numpy as np
+import pandas as pd
 import random
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Get battery parameters from config
-from virtual_energy.config import get_battery_config
+from dispatch_benchmark.config import get_battery_config
 
 battery_config = get_battery_config()
 P_MAX = battery_config.p_max_mw
@@ -46,7 +47,9 @@ def load_prices(csv: Path, node: str | None = None) -> pd.Series:
             raise ValueError(f"node '{node}' not found; columns={df.columns}")
         df["SettlementPointPrice"] = df[node]
     return (
-        df.set_index("timestamp")["SettlementPointPrice"].sort_index().asfreq("15min")
+        df.set_index("timestamp")["SettlementPointPrice"]
+        .sort_index()
+        .asfreq("15min")
     )
 
 
