@@ -47,6 +47,18 @@ def main():
         help="Target frequency for resampling data (e.g., '15T' for 15 minutes). Uses original frequency if not specified.",
     )
     parser.add_argument(
+        "--start-date",
+        type=str,
+        default=None,
+        help="Start date for benchmarking (YYYY-MM-DD). Uses first date in dataset if not specified.",
+    )
+    parser.add_argument(
+        "--end-date",
+        type=str,
+        default=None,
+        help="End date for benchmarking (YYYY-MM-DD). Uses last date in dataset if not specified.",
+    )
+    parser.add_argument(
         "--nodes",
         type=str,
         nargs="+",
@@ -93,16 +105,17 @@ def main():
         print("Please download or specify the correct path to ERCOT price data.")
         sys.exit(1)
 
-    # Run the benchmark (this uses the naive forecaster added to process_node)
+    # Run the benchmark with the parsed arguments
     results_summary = run_benchmark(
         prices_path=args.prices_path,
-        start_date=None,  # Use automatic date from the data
+        start_date=args.start_date,  # Pass start_date to run_benchmark
+        end_date=args.end_date,  # Pass end_date to run_benchmark
         output_dir=args.output_dir,
         nodes=args.nodes,
         max_nodes=args.max_nodes,
         n_jobs=args.n_jobs,
-        data_format=args.data_format,  # Pass the data format to the benchmark function
-        data_frequency=args.data_frequency,  # Pass the data frequency for resampling
+        data_format=args.data_format,
+        data_frequency=args.data_frequency,
     )
 
     # Print some analysis specifically highlighting the naive model performance

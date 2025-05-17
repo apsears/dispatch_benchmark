@@ -68,7 +68,7 @@ e_max_mwh = 200
 p_max_mw = 25
 eta_chg = 0.95
 delta_t = 0.25  # 15-minute intervals
-initial_soc_frac = 0.5
+initial_soc_frac = 0.0
 
 [tool.virtual-energy.optimisers]
 # List of optimisers to use in benchmarks

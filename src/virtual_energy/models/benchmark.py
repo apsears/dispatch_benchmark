@@ -66,16 +66,183 @@ class CustomJSONEncoder(json.JSONEncoder):
 DEFAULT_CFG = get_battery_config()
 
 
-def load_prices(prices_path, node=None, max_nodes=100):
+def load_prices(prices_path, node=None, max_nodes=100, data_frequency=None):
     """Load price data for a specific node or all nodes."""
     print(f"Loading prices from {prices_path}")
 
-    # Load concatenated data from CSV
+    # Detect if this is NYISO data from filename
+    is_nyiso = "nyiso" in prices_path.lower() and "realtime" in prices_path.lower()
+
+    # Load data from CSV
     raw_df = pd.read_csv(prices_path)
 
-    # Check if it's already in wide format or needs transformation
-    if "deliveryDate" in raw_df.columns and "settlementPoint" in raw_df.columns:
-        print("Converting from long format to wide format...")
+    # Check if data is in tidy ERCOT format (node, timestamp, price)
+    if all(col in raw_df.columns for col in ["node", "timestamp", "price"]):
+        print("Data is in ERCOT tidy format, converting to wide format")
+
+        # Ensure timestamp is datetime
+        raw_df["timestamp"] = pd.to_datetime(raw_df["timestamp"])
+
+        # Check for duplicates in timestamp-node combinations
+        duplicate_count = raw_df.duplicated(subset=["timestamp", "node"]).sum()
+        if duplicate_count > 0:
+            print(
+                f"Found {duplicate_count} duplicate timestamp-node combinations. Aggregating with mean..."
+            )
+            # Aggregate duplicates by taking the mean price
+            raw_df = raw_df.groupby(["timestamp", "node"], as_index=False)[
+                "price"
+            ].mean()
+
+        # Get unique node names
+        all_nodes = raw_df["node"].unique()
+        print(f"Found {len(all_nodes)} unique nodes")
+
+        # Limit to max_nodes if specified
+        if len(all_nodes) > max_nodes:
+            print(f"Limiting to first {max_nodes} nodes")
+            selected_nodes = all_nodes[:max_nodes]
+            raw_df = raw_df[raw_df["node"].isin(selected_nodes)]
+
+        # Convert from tidy to wide format
+        try:
+            df = raw_df.pivot(
+                index="timestamp", columns="node", values="price"
+            ).reset_index()
+            print(
+                f"Converted to wide format with {len(df)} rows and {len(df.columns)} columns"
+            )
+        except ValueError as e:
+            if "Index contains duplicate entries" in str(e):
+                print(
+                    "Still found duplicates after aggregation. Trying different approach..."
+                )
+                # Alternative approach: use pivot_table which handles duplicates by aggregation
+                df = raw_df.pivot_table(
+                    index="timestamp", columns="node", values="price", aggfunc="mean"
+                ).reset_index()
+                print(
+                    f"Used pivot_table to handle duplicates: {len(df)} rows and {len(df.columns)} columns"
+                )
+            else:
+                raise
+
+    # Check if data is in tidy NYISO format (timestamp, zone, price)
+    elif all(col in raw_df.columns for col in ["zone", "timestamp", "price"]):
+        print("Data is in NYISO tidy format, converting to wide format")
+
+        # Ensure timestamp is datetime
+        raw_df["timestamp"] = pd.to_datetime(raw_df["timestamp"])
+
+        # If this is NYISO data and a specific frequency is requested, resample the time series
+        if is_nyiso and data_frequency and "rt" in prices_path.lower():
+            print(
+                f"NYISO RealTime data detected. Will resample to {data_frequency} frequency if needed."
+            )
+
+            # Determine current frequency
+            from virtual_energy.io.nyiso import infer_frequency
+
+            original_freq = infer_frequency(raw_df)
+            print(f"Original data frequency detected as: {original_freq}")
+
+            if original_freq != data_frequency:
+                print(f"Resampling NYISO data from {original_freq} to {data_frequency}")
+
+                # Convert price column to numeric, forcing non-numeric values to NaN
+                raw_df["price"] = pd.to_numeric(raw_df["price"], errors="coerce")
+
+                # Drop any rows with NaN prices
+                if raw_df["price"].isna().any():
+                    nan_count = raw_df["price"].isna().sum()
+                    print(f"Dropping {nan_count} rows with non-numeric price values")
+                    raw_df = raw_df.dropna(subset=["price"])
+
+                # Resample within each zone
+                resampled_dfs = []
+                for zone_name in raw_df["zone"].unique():
+                    try:
+                        # Filter to just this zone
+                        zone_df = raw_df[raw_df["zone"] == zone_name].copy()
+
+                        # Set the timestamp as index
+                        zone_df = zone_df.set_index("timestamp")
+
+                        # Drop the zone column before resampling
+                        zone_df = zone_df.drop(columns=["zone"])
+
+                        # Resample
+                        resampled = zone_df.resample(data_frequency).mean()
+
+                        # Reset index and add back the zone
+                        resampled = resampled.reset_index()
+                        resampled["zone"] = zone_name
+
+                        resampled_dfs.append(resampled)
+                        print(f"Successfully resampled zone: {zone_name}")
+                    except Exception as e:
+                        print(f"Error resampling zone {zone_name}: {e}")
+                        # Continue with other zones
+                        continue
+
+                if not resampled_dfs:
+                    print(
+                        "WARNING: All resampling attempts failed. Using original data."
+                    )
+                else:
+                    # Combine all resampled dataframes
+                    raw_df = pd.concat(resampled_dfs, ignore_index=True)
+                    print(
+                        f"Resampling complete: {len(raw_df)} data points across {len(resampled_dfs)} zones"
+                    )
+
+        # Check for duplicates in timestamp-zone combinations
+        duplicate_count = raw_df.duplicated(subset=["timestamp", "zone"]).sum()
+        if duplicate_count > 0:
+            print(
+                f"Found {duplicate_count} duplicate timestamp-zone combinations. Aggregating with mean..."
+            )
+            # Aggregate duplicates by taking the mean price
+            raw_df = raw_df.groupby(["timestamp", "zone"], as_index=False)[
+                "price"
+            ].mean()
+
+        # Get unique zone names
+        all_zones = raw_df["zone"].unique()
+        print(f"Found {len(all_zones)} unique zones")
+
+        # Limit to max_nodes if specified
+        if len(all_zones) > max_nodes:
+            print(f"Limiting to first {max_nodes} zones")
+            selected_zones = all_zones[:max_nodes]
+            raw_df = raw_df[raw_df["zone"].isin(selected_zones)]
+
+        # Convert from tidy to wide format
+        try:
+            df = raw_df.pivot(
+                index="timestamp", columns="zone", values="price"
+            ).reset_index()
+            print(
+                f"Converted to wide format with {len(df)} rows and {len(df.columns)} columns"
+            )
+        except ValueError as e:
+            if "Index contains duplicate entries" in str(e):
+                print(
+                    "Still found duplicates after aggregation. Trying different approach..."
+                )
+                # Alternative approach: use pivot_table which handles duplicates by aggregation
+                df = raw_df.pivot_table(
+                    index="timestamp", columns="zone", values="price", aggfunc="mean"
+                ).reset_index()
+                print(
+                    f"Used pivot_table to handle duplicates: {len(df)} rows and {len(df.columns)} columns"
+                )
+            else:
+                raise
+
+    # Check if it's in the legacy ERCOT wide format
+    elif "deliveryDate" in raw_df.columns and "settlementPoint" in raw_df.columns:
+        print("Converting from ERCOT legacy format to wide format...")
 
         # Create timestamp column from date, hour, and interval
         raw_df["timestamp"] = pd.to_datetime(
@@ -113,8 +280,14 @@ def load_prices(prices_path, node=None, max_nodes=100):
 
         print(f"Created wide format with {len(df)} rows and {len(df.columns)} columns")
     else:
-        # Already in wide format
+        # Assuming it's already in wide format
+        print("Assuming data is already in wide format")
         df = raw_df
+
+    # Ensure timestamp column is datetime type
+    if "timestamp" in df.columns:
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        print("Converted timestamp column to datetime")
 
     # If no node specified, return the dataframe with all nodes
     if node is None:
@@ -136,17 +309,23 @@ def filter_date_range(df, start_date=None, end_date=None):
     if start_date is None:
         # Use the first date in the dataset
         start_date = df["timestamp"].min()
-    else:
+    elif isinstance(start_date, str):
         # Handle YYYY-MM format
         if len(start_date.split("-")) == 2:
             start_date = f"{start_date}-01"  # Add default day
+        # Convert string to datetime
+        start_date = pd.to_datetime(start_date)
+    # Ensure it's a datetime at this point
+    if not isinstance(start_date, (pd.Timestamp, datetime)):
         start_date = pd.to_datetime(start_date)
 
     # Process end date
     if end_date is None:
-        # Use start date + 1 week by default
-        end_date = start_date + timedelta(days=7)
-    else:
+        # Use start date + 1 week by default for a small sample
+        # or the end of the dataset for full analysis
+        # end_date = start_date + timedelta(days=7)
+        end_date = df["timestamp"].max()  # Use full dataset by default
+    elif isinstance(end_date, str):
         # Handle YYYY-MM format
         if len(end_date.split("-")) == 2:
             # Add a month to get to the first day of the next month
@@ -155,10 +334,17 @@ def filter_date_range(df, start_date=None, end_date=None):
                 end_date = f"{year + 1}-01-01"
             else:
                 end_date = f"{year}-{month + 1:02d}-01"
+        # Convert string to datetime
+        end_date = pd.to_datetime(end_date)
+    # Ensure it's a datetime at this point
+    if not isinstance(end_date, (pd.Timestamp, datetime)):
         end_date = pd.to_datetime(end_date)
 
     # Filter to the date range
     filtered_df = df[(df["timestamp"] >= start_date) & (df["timestamp"] < end_date)]
+
+    print(f"Filtered date range: {start_date} to {end_date}")
+    print(f"Date range contains {len(filtered_df)} records")
 
     if len(filtered_df) == 0:
         print(f"Warning: No data found between {start_date} and {end_date}")
@@ -298,6 +484,9 @@ def process_node(node, df_all, start_date, end_date, output_dir):
     # Filter to the specific node
     try:
         node_df = tidy(df_all, node)
+
+        # Ensure the timestamp column is a datetime
+        node_df["timestamp"] = pd.to_datetime(node_df["timestamp"])
     except Exception as e:
         print(f"Error processing node {node}: {str(e)}")
         return None
@@ -411,64 +600,15 @@ def run_benchmark(
     max_nodes = max_nodes or benchmark_config.get("max_nodes", 100)
 
     # Load price data
-    df_all = load_prices(prices_path, max_nodes=max_nodes)
+    df_all = load_prices(
+        prices_path, max_nodes=max_nodes, data_frequency=data_frequency
+    )
 
     # If data_frequency is specified, resample the data
     if data_frequency:
-        try:
-            from virtual_energy.io.nyiso import (
-                load_prices as nyiso_load_prices,
-                infer_frequency,
-            )
-
-            # Check if we can infer the frequency
-            original_freq = infer_frequency(df_all)
-            print(f"Original data frequency: {original_freq}")
-
-            if original_freq != data_frequency:
-                print(f"Resampling data from {original_freq} to {data_frequency}")
-
-                # Convert timestamp to datetime if it's not already
-                df_all["timestamp"] = pd.to_datetime(df_all["timestamp"])
-
-                # Resample each column except timestamp
-                node_columns = [col for col in df_all.columns if col != "timestamp"]
-                resampled_dfs = []
-
-                for node in node_columns:
-                    # Create a tidy dataframe for this node
-                    node_df = df_all[["timestamp", node]].copy()
-                    node_df.columns = ["timestamp", "price"]
-
-                    # Add a node column
-                    node_df["node"] = node
-
-                    # Resample
-                    node_df = (
-                        node_df.set_index("timestamp")
-                        .groupby("node")
-                        .resample(data_frequency)
-                        .mean()
-                        .reset_index()
-                    )
-
-                    resampled_dfs.append(node_df)
-
-                # Combine all resampled dataframes
-                if resampled_dfs:
-                    combined_df = pd.concat(resampled_dfs, ignore_index=True)
-
-                    # Convert back to wide format
-                    wide_df = combined_df.pivot(
-                        index="timestamp", columns="node", values="price"
-                    ).reset_index()
-
-                    # Replace the original dataframe
-                    df_all = wide_df
-                    print(f"Successfully resampled data to {data_frequency}")
-        except Exception as e:
-            print(f"Warning: Failed to resample data: {e}")
-            print("Proceeding with original data frequency")
+        print(f"Data frequency parameter provided: {data_frequency}")
+        # Resampling is now handled directly in the load_prices function
+        # No need for additional resampling here
 
     # If no nodes specified, use all columns except timestamp
     if not nodes:
@@ -483,7 +623,12 @@ def run_benchmark(
         n_jobs = mp.cpu_count()
     n_jobs = min(n_jobs, len(nodes))
     print(f"Using {n_jobs} processes for {len(nodes)} nodes")
-    print(f"Date range: {start_date or 'beginning'} to {end_date or 'one week later'}")
+
+    # Update the date range message to reflect the actual behavior
+    if start_date is None and end_date is None:
+        print(f"Date range: full dataset (all available data)")
+    else:
+        print(f"Date range: {start_date or 'beginning'} to {end_date or 'end of data'}")
 
     # Process each node
     if n_jobs == 1:
