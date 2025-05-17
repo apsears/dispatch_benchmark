@@ -1,6 +1,6 @@
 # Benchmark Report
 
-The comprehensive benchmark was run on one year of ERCOT data across 16 settlement points. Results were saved in the `results/ercot` directory.
+The comprehensive benchmark was run on one year of ERCOT data across 16 settlement points. Results were saved in the `benchmarks/results/ercot` directory.
 
 ## ERCOT Summary
 
@@ -34,12 +34,12 @@ The comprehensive benchmark was run on one year of ERCOT data across 16 settleme
 | online_mpc_ridge | 1,698.96 |
 
 **Output Files:**
-- CSV files saved to `results/summary/ercot/ercot_summary`
-- Visualizations saved to `results/summary/ercot`
+- CSV files saved to `benchmarks/results/summary/ercot/ercot_summary`
+- Visualizations saved to `benchmarks/results/summary/ercot`
 
 **Results Location:**
-- ERCOT: `results/ercot`
-- ERCOT summary: `results/summary/ercot`
+- ERCOT: `benchmarks/results/ercot`
+- ERCOT summary: `benchmarks/results/summary/ercot`
 
 ## Benchmark Timing Summary
 
@@ -54,4 +54,4 @@ The comprehensive benchmark was run on one year of ERCOT data across 16 settleme
 
 The `oracle_lp` model represents the theoretical optimum with perfect knowledge of future prices. `online_mpc_ridge` uses model predictive control with a ridge regression forecaster. The quartile models dispatch based on historical percentiles without explicit forecasts. While `online_mpc_ridge` achieved the highest average revenue relative to the oracle, it also required significantly more computation time.
 
-Benchmarks were launched via the scripts in the `benchmarks/` directory and summary files are available under `results/summary`.
+Benchmarks were launched via the scripts in the `benchmarks/` directory and summary files are available under `benchmarks/results/summary`.

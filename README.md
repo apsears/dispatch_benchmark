@@ -1,4 +1,4 @@
-# Virtual Energy
+# Dispatch Benchmarking for Battery Storage
 
 This project provides utilities for downloading electricity price data and benchmarking battery dispatch models. The code primarily targets ERCOT but also supports NYISO. We model a battery system with maximum energy capacity (`e_max_mwh`), maximum power capacity (`p_max_mw`), and round-trip efficiency (`eta_chg`). The battery operates in 15-minute intervals (`delta_t`).
 
@@ -133,7 +133,6 @@ Benchmark scripts live in the `benchmarks/` directory. `run_all_benchmarks.sh` e
 
 - Oracle LP (perfect foresight)
 - Online MPC with ridge regression
-- Online MPC with naive forecasting
 - Online Quartile dispatch (10%, 25%, 45%)
 
-Results and summary statistics are saved under `results/`.
+Results and summary statistics are saved under `benchmarks/results/`.
