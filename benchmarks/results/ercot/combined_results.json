@@ -1,0 +1,1042 @@
+{
+    "7RNCHSLR_ALL": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2576325.207370866,
+            "runtime_seconds": 8.516849279403687,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 27.089431840824346,
+                "mean_revenue": 73.33480992203086,
+                "total_mwh_deployed": -3728.9802646499857
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1491647.1178888003,
+            "runtime_seconds": 38997.78507351875,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 27.089431840824346,
+                "mean_revenue": 42.45956898149214,
+                "total_mwh_deployed": -3731.7763157814024
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 767914.3523026316,
+            "runtime_seconds": 21.40374517440796,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 27.089431840824346,
+                "mean_revenue": 21.85859646188926,
+                "total_mwh_deployed": -748.7006578947369
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1067966.883388158,
+            "runtime_seconds": 21.55004572868347,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 27.089431840824346,
+                "mean_revenue": 30.39955832137309,
+                "total_mwh_deployed": -1542.7138157894735
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1177158.2722039474,
+            "runtime_seconds": 20.490840435028076,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 27.089431840824346,
+                "mean_revenue": 33.507679035721935,
+                "total_mwh_deployed": -2782.5986842105267
+            }
+        }
+    ],
+    "AEEC": [
+        {
+            "model": "oracle_LP",
+            "revenue": 3301802.922327947,
+            "runtime_seconds": 8.344554901123047,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 19.64079929407076,
+                "mean_revenue": 93.98545223101952,
+                "total_mwh_deployed": -3723.0098714999876
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1351716.4467188402,
+            "runtime_seconds": 38996.92614364624,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 19.64079929407076,
+                "mean_revenue": 38.476458020518635,
+                "total_mwh_deployed": -3719.901315855548
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 1507220.1715460524,
+            "runtime_seconds": 22.318568229675293,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 19.64079929407076,
+                "mean_revenue": 42.90285421838412,
+                "total_mwh_deployed": -767.6973684210527
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1356452.6282894737,
+            "runtime_seconds": 21.668578147888184,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 19.64079929407076,
+                "mean_revenue": 38.61127290112646,
+                "total_mwh_deployed": -1345.444078947369
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1446412.7083881581,
+            "runtime_seconds": 20.637996912002563,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 19.64079929407076,
+                "mean_revenue": 41.171976555980706,
+                "total_mwh_deployed": -2399.046052631579
+            }
+        }
+    ],
+    "AGUAYO_UNIT1": [
+        {
+            "model": "oracle_LP",
+            "revenue": 3183553.2996928417,
+            "runtime_seconds": 8.537222385406494,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.434065640033015,
+                "mean_revenue": 90.61948990045379,
+                "total_mwh_deployed": -3719.078946849989
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1737206.611214773,
+            "runtime_seconds": 38997.32150411606,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.434065640033015,
+                "mean_revenue": 49.44939259385651,
+                "total_mwh_deployed": -3721.3486843104124
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 1296121.5712171053,
+            "runtime_seconds": 21.536016702651978,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.434065640033015,
+                "mean_revenue": 36.89395608485683,
+                "total_mwh_deployed": -724.2269736842109
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1395670.1787828945,
+            "runtime_seconds": 21.383033752441406,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.434065640033015,
+                "mean_revenue": 39.72759610551634,
+                "total_mwh_deployed": -1382.4177631578953
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1443371.112006579,
+            "runtime_seconds": 20.494752645492554,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.434065640033015,
+                "mean_revenue": 41.08539785393467,
+                "total_mwh_deployed": -2497.9934210526317
+            }
+        }
+    ],
+    "AJAXWIND_RN": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2806772.732423645,
+            "runtime_seconds": 8.369002342224121,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 22.643303634966266,
+                "mean_revenue": 79.8944730415771,
+                "total_mwh_deployed": -3719.9013151249874
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1459546.5370418148,
+            "runtime_seconds": 38992.74835777283,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 22.643303634966266,
+                "mean_revenue": 41.54582952497267,
+                "total_mwh_deployed": -3723.601973857117
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 1092940.7470394736,
+            "runtime_seconds": 24.581525802612305,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 22.643303634966266,
+                "mean_revenue": 31.110436567119457,
+                "total_mwh_deployed": -718.1907894736843
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1036523.2032894738,
+            "runtime_seconds": 21.381415605545044,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 22.643303634966266,
+                "mean_revenue": 29.50451747144897,
+                "total_mwh_deployed": -1350.871710526316
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1050417.0707236843,
+            "runtime_seconds": 20.787397861480713,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 22.643303634966266,
+                "mean_revenue": 29.90000485963065,
+                "total_mwh_deployed": -2436.9572368421054
+            }
+        }
+    ],
+    "ALGOD_ALL_RN": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2577929.41396454,
+            "runtime_seconds": 8.44428014755249,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.025643733454782,
+                "mean_revenue": 73.38047348394694,
+                "total_mwh_deployed": -3733.2072382499864
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1404956.5764126321,
+            "runtime_seconds": 38976.08553957939,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.025643733454782,
+                "mean_revenue": 39.99193237917031,
+                "total_mwh_deployed": -3727.7138158118787
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 796557.0016447369,
+            "runtime_seconds": 38.43178057670593,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.025643733454782,
+                "mean_revenue": 22.673906283474334,
+                "total_mwh_deployed": -706.0197368421055
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 995161.4453947368,
+            "runtime_seconds": 21.63562321662903,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.025643733454782,
+                "mean_revenue": 28.327159642331186,
+                "total_mwh_deployed": -1394.7039473684213
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1098741.036019737,
+            "runtime_seconds": 21.250041007995605,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 24.025643733454782,
+                "mean_revenue": 31.275541146558222,
+                "total_mwh_deployed": -2571.4473684210525
+            }
+        }
+    ],
+    "ALVIN_RN": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486033.0118362266,
+            "runtime_seconds": 8.571300745010376,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.808797073809455,
+                "mean_revenue": 70.7646526383031,
+                "total_mwh_deployed": -3728.651315624985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1512749.955689518,
+            "runtime_seconds": 38961.59082078934,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.808797073809455,
+                "mean_revenue": 43.06025890778851,
+                "total_mwh_deployed": -3724.901315825886
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 844957.9868421053,
+            "runtime_seconds": 51.37514305114746,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.808797073809455,
+                "mean_revenue": 24.051634933309764,
+                "total_mwh_deployed": -746.578947368421
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1040577.1595394737,
+            "runtime_seconds": 21.456703186035156,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.808797073809455,
+                "mean_revenue": 29.619912884332177,
+                "total_mwh_deployed": -1507.138157894737
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1159805.1111842105,
+            "runtime_seconds": 20.97429585456848,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.808797073809455,
+                "mean_revenue": 33.01372324113206,
+                "total_mwh_deployed": -2851.4309210526317
+            }
+        }
+    ],
+    "AMADEUS_ALL": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2841656.5110373152,
+            "runtime_seconds": 8.61191177368164,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 23.143718653041475,
+                "mean_revenue": 80.88743591236558,
+                "total_mwh_deployed": -3715.90460454999
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1502327.8442899254,
+            "runtime_seconds": 38893.959184885025,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 23.143718653041475,
+                "mean_revenue": 42.7635946682396,
+                "total_mwh_deployed": -3721.611842204433
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 1023611.7470394736,
+            "runtime_seconds": 111.49492192268372,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 23.143718653041475,
+                "mean_revenue": 29.1369943081459,
+                "total_mwh_deployed": -734.2105263157897
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1092087.131743421,
+            "runtime_seconds": 21.322810173034668,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 23.143718653041475,
+                "mean_revenue": 31.086138502844243,
+                "total_mwh_deployed": -1388.042763157895
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1140382.2092105264,
+            "runtime_seconds": 21.3830087184906,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 23.143718653041475,
+                "mean_revenue": 32.46085250094009,
+                "total_mwh_deployed": -2456.003289473685
+            }
+        }
+    ],
+    "AMISTAD_ALL": [
+        {
+            "model": "oracle_LP",
+            "revenue": 4763334.050309187,
+            "runtime_seconds": 8.49886679649353,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 36.42652557570237,
+                "mean_revenue": 135.58777291592003,
+                "total_mwh_deployed": -3733.5690806749885
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 2317825.2969197794,
+            "runtime_seconds": 38764.12805080414,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 36.42652557570237,
+                "mean_revenue": 65.9766387782807,
+                "total_mwh_deployed": -3632.1875003696914
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 1695147.7126644738,
+            "runtime_seconds": 211.3836362361908,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 36.42652557570237,
+                "mean_revenue": 48.252190733667526,
+                "total_mwh_deployed": -751.4473684210527
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 2168175.637006579,
+            "runtime_seconds": 39.19400930404663,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 36.42652557570237,
+                "mean_revenue": 61.71687788581535,
+                "total_mwh_deployed": -1544.9013157894738
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 2629375.583223684,
+            "runtime_seconds": 21.777388334274292,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 36.42652557570237,
+                "mean_revenue": 74.84488295874539,
+                "total_mwh_deployed": -2844.9835526315796
+            }
+        }
+    ],
+    "AMOCOOIL_CC1": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.617828845977783,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38980.55796599388,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 33.840359687805176,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 21.102882146835327,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 20.513985872268677,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ],
+    "AMOCOOIL_CC2": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.372456550598145,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38973.75985264778,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 40.29793834686279,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 21.27584981918335,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 20.06930947303772,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ],
+    "AMOCO_PUN1": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.51317548751831,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38996.83319020271,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 21.423248291015625,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 21.323305130004883,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 20.59564447402954,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ],
+    "AMOCO_PUN2": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.629489183425903,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38976.935868024826,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 37.408315658569336,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 21.548157691955566,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 21.175594568252563,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ],
+    "AMO_AMOCO_1": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.453837633132935,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38994.45954871178,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 23.19240403175354,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 21.333917140960693,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 19.91761541366577,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ],
+    "AMO_AMOCO_2": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.32350468635559,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38983.88189077377,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 31.640103101730347,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 21.255516290664673,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 20.506481647491455,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ],
+    "AMO_AMOCO_5": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.445318698883057,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38993.83405256271,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 24.833776712417603,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 22.126219272613525,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 20.545403480529785,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ],
+    "AMO_AMOCO_G1": [
+        {
+            "model": "oracle_LP",
+            "revenue": 2486919.284224563,
+            "runtime_seconds": 8.611757278442383,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 70.78988028307087,
+                "total_mwh_deployed": -3727.894735399985
+            }
+        },
+        {
+            "model": "online_mpc_ridge",
+            "forecast_model": "ridge",
+            "horizon": 32,
+            "revenue": 1509198.292183823,
+            "runtime_seconds": 38978.7010011673,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 42.959161201896414,
+                "total_mwh_deployed": -3724.9506579227277
+            }
+        },
+        {
+            "model": "online_quartile_p10",
+            "percentile": 10,
+            "window_size": 672,
+            "revenue": 849633.5659539474,
+            "runtime_seconds": 36.15299725532532,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 24.18472477168163,
+                "total_mwh_deployed": -733.7828947368423
+            }
+        },
+        {
+            "model": "online_quartile_p25",
+            "percentile": 25,
+            "window_size": 672,
+            "revenue": 1034605.0911184209,
+            "runtime_seconds": 22.384228944778442,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 29.449918622254447,
+                "total_mwh_deployed": -1513.2401315789477
+            }
+        },
+        {
+            "model": "online_quartile_p45",
+            "percentile": 45,
+            "window_size": 672,
+            "revenue": 1155166.8197368423,
+            "runtime_seconds": 20.86468195915222,
+            "dispatch_summary": {
+                "timestamps": 35131,
+                "mean_price": 26.97180353533916,
+                "mean_revenue": 32.881694791974105,
+                "total_mwh_deployed": -2872.450657894737
+            }
+        }
+    ]
+}
